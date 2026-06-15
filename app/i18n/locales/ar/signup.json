@@ -1,0 +1,13 @@
+{
+  "return": "رجوع",
+  "welcome": "ابدأ رحلتك",
+  "description": "قم بإنشاء حساب لفتح توصيات مخصصة، وحفظ وجهاتك المفضلة، وتخطيط عطلتك المغربية المثالية.",
+  "signUpTitle": "إنشاء حساب",
+  "signUpSubtitle": "املأ بياناتك أدناه للبدء",
+  "namePlaceholder": "الاسم الكامل",
+  "emailPlaceholder": "البريد الإلكتروني",
+  "passwordPlaceholder": "كلمة المرور",
+  "signUpButton": "إنشاء حساب",
+  "hasAccount": "لديك حساب بالفعل؟",
+  "signInLink": "تسجيل الدخول"
+}

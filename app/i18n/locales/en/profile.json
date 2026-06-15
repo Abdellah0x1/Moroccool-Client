@@ -1,0 +1,29 @@
+{
+  "notAvailable": "Not available",
+  "fallbackName": "Morocco Explorer",
+  "fallbackEmail": "No email attached",
+  "fallbackRole": "traveler",
+  "hero": {
+    "alt": "Moroccan courtyard",
+    "eyebrow": "Profile",
+    "title": "Your Morocco Discovery account",
+    "description": "Review your account details, check your current access, and keep your travel profile ready for the next itinerary."
+  },
+  "actions": {
+    "exploreDestinations": "Explore destinations",
+    "signOut": "Sign out"
+  },
+  "details": {
+    "sectionEyebrow": "Account details",
+    "sectionTitle": "Personal information",
+    "fullName": "Full name",
+    "email": "Email address",
+    "role": "Account role",
+    "memberSince": "Member since"
+  },
+  "session": {
+    "eyebrow": "Session",
+    "title": "Signed in securely",
+    "description": "Sign out when you are done using this device."
+  }
+}

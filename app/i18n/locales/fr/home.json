@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "eyebrow": "Voyage de luxe soigneusement sélectionné",
+    "title": "Découvrez les secrets intemporels de l’oasis moderne",
+    "description": "Explorez la magie du Maroc. Des souks animés de Marrakech au calme du désert et aux villes côtières élégantes."
+  },
+  "destination": {
+    "title": "Nos destinations",
+    "marrakech": {
+      "title": "Marrakech",
+      "description": "Découvrez le charme de Marrakech, la ville rouge, où l’histoire se mêle à une modernité vibrante. Profitez de ses souks traditionnels, de ses jardins luxuriants et de sa cuisine généreuse."
+    },
+    "casablanca": {
+      "title": "Casablanca",
+      "description": "Découvrez Casablanca, la ville côtière où l’élégance contemporaine rencontre une histoire riche. Profitez de ses plages, de ses sites culturels et de sa gastronomie variée."
+    },
+    "chefchaouen": {
+      "title": "Chefchaouen",
+      "description": "Découvrez Chefchaouen, la ville bleue, où la beauté naturelle se marie au patrimoine culturel. Flânez dans ses ruelles étroites, admirez ses panoramas et goûtez à sa cuisine unique."
+    }
+  },
+  "journey": {
+    "eyebrow": "Comment ça marche",
+    "title": "Planifiez Votre Voyage",
+    "subtitle": "Du rêve à la destination en quatre étapes simples. Nous nous occupons des détails pour que vous puissiez vous concentrer sur l'aventure.",
+    "steps": {
+      "discover": {
+        "label": "Découvrir",
+        "title": "Choisissez Votre Ville",
+        "description": "Parcourez notre collection de destinations marocaines emblématiques — des murs rouges de Marrakech aux ruelles bleues de Chefchaouen."
+      },
+      "stay": {
+        "label": "Séjourner",
+        "title": "Choisissez Votre Hébergement",
+        "description": "Sélectionnez parmi des riads, hôtels de charme et camps de luxe dans le désert, adaptés à votre style et budget."
+      },
+      "dine": {
+        "label": "Dîner",
+        "title": "Réservez une Table",
+        "description": "Explorez la gastronomie marocaine — des terrasses panoramiques aux trésors cachés de la médina — et réservez instantanément."
+      },
+      "explore": {
+        "label": "Explorer",
+        "title": "Vivez l'Expérience",
+        "description": "Votre itinéraire est prêt. Plongez dans la culture, les saveurs et la beauté intemporelle du Maroc."
+      }
+    },
+    "cta": "Commencer à Planifier"
+  },
+  "subscribe": {
+    "hook": "Rejoignez l’aventure",
+    "title": "Votre histoire marocaine commence ici",
+    "description": "Abonnez-vous pour recevoir des guides de voyage soigneusement sélectionnés, des expériences culinaires exclusives et les dernières pépites cachées livrées directement dans votre boîte de réception.",
+    "placeholder": "Adresse e-mail",
+    "button": "S’abonner"
+  }
+}

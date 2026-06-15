@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "eyebrow": "Curated Luxury Travel",
+    "title": "Explore the Magic of Morocco",
+    "description": "Unveil the Timeless Secrets of the Modern Oasis"
+  },
+  "destination": {
+    "title": "Our destinations",
+    "marrakech": {
+      "title": "Marrakech",
+      "description": "Discover the charm of Marrakech, the Red City, where rich history meets vibrant modern life. Enjoy its traditional souks, lush gardens, and flavorful cuisine."
+    },
+    "casablanca": {
+      "title": "Casablanca",
+      "description": "Discover Casablanca, the coastal city where contemporary elegance meets a rich history. Enjoy its beaches, cultural landmarks, and diverse cuisine."
+    },
+    "chefchaouen": {
+      "title": "Chefchaouen",
+      "description": "Discover Chefchaouen, the Blue City, where natural beauty blends with cultural heritage. Wander its narrow streets, take in stunning views, and savor its unique cuisine."
+    }
+  },
+  "journey": {
+    "eyebrow": "How It Works",
+    "title": "Plan Your Journey",
+    "subtitle": "From dream to destination in four simple steps. We handle the details so you can focus on the adventure.",
+    "steps": {
+      "discover": {
+        "label": "Discover",
+        "title": "Choose Your City",
+        "description": "Browse our curated collection of iconic Moroccan destinations — from the red walls of Marrakech to the blue streets of Chefchaouen."
+      },
+      "stay": {
+        "label": "Stay",
+        "title": "Pick Your Stay",
+        "description": "Select from handpicked riads, boutique hotels, and luxury desert camps tailored to your style and budget."
+      },
+      "dine": {
+        "label": "Dine",
+        "title": "Reserve a Table",
+        "description": "Explore Morocco's finest dining — from rooftop terraces to hidden medina gems — and book your table instantly."
+      },
+      "explore": {
+        "label": "Explore",
+        "title": "Live the Experience",
+        "description": "Your itinerary is set. Immerse yourself in the culture, flavors, and timeless beauty of Morocco."
+      }
+    },
+    "cta": "Start Planning"
+  },
+  "subscribe": {
+    "hook": "Join the Journey",
+    "title": "Your Moroccan Story Begins Here",
+    "description": "Subscribe to receive curated travel guides, exclusive culinary experiences, and the latest hidden gems delivered straight to your inbox.",
+    "placeholder": "Email address",
+    "button": "Subscribe"
+  }
+}

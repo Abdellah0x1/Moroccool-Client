@@ -1,0 +1,50 @@
+{
+  "brand": "Morocco Discovery",
+  "nav": {
+    "home": "الرئيسية",
+    "destinations": "الوجهات",
+    "restaurants": "المطاعم",
+    "accomodation": "الإقامة",
+    "login": "تسجيل الدخول",
+    "profile": "ملفي الشخصي",
+    "business": "عملي",
+    "listBusiness": "أضف نشاطك",
+    "mobileNavigation": "التنقل عبر الهاتف"
+  },
+  "actions": {
+    "planTrip": "خطط رحلتي",
+    "explore": "استكشف"
+  },
+  "search": {
+    "destinationPlaceholder": "إلى أين تريد الذهاب؟",
+    "cuisineType": "نوع المطبخ",
+    "searchButton": "بحث"
+  },
+  "language": {
+    "english": "الإنجليزية",
+    "french": "الفرنسية",
+    "arabic": "العربية",
+    "select": "اختر اللغة"
+  },
+  "footer": {
+    "description": "اختبر سحر المغرب، من أسواق مراكش النابضة إلى كثبان الصحراء الهادئة، واكتشف عالما من الفخامة والتراث.",
+    "exploreTitle": "استكشف",
+    "destinations": "الوجهات",
+    "fineDining": "تجارب الطعام",
+    "experiences": "التجارب",
+    "itineraries": "مسارات مختارة",
+    "supportTitle": "الدعم",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "faq": "الأسئلة الشائعة",
+    "privacy": "سياسة الخصوصية",
+    "contactTitle": "تواصل معنا",
+    "address": "123 شارع محمد الخامس،\nكيليز، مراكش 40000",
+    "copyright": "Morocco Discovery. جميع الحقوق محفوظة.",
+    "terms": "شروط الخدمة",
+    "cookiePolicy": "سياسة ملفات تعريف الارتباط",
+    "facebook": "فيسبوك",
+    "instagram": "إنستغرام",
+    "twitter": "تويتر"
+  }
+}

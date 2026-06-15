@@ -1,0 +1,100 @@
+{
+  "hero": {
+    "alt": "Architecture marocaine",
+    "eyebrow": "FAQ",
+    "title": "Des réponses pour planifier en confiance.",
+    "description": "Trouvez rapidement des réponses sur les comptes, la découverte de voyage, les réservations, la confidentialité et le support Morocco Discovery."
+  },
+  "categories": {
+    "accounts": {
+      "label": "Comptes",
+      "description": "Connexion, inscription, profils et préférences enregistrées."
+    },
+    "travel": {
+      "label": "Voyage",
+      "description": "Destinations, séjours, restaurants et itinéraires."
+    },
+    "privacy": {
+      "label": "Confidentialité",
+      "description": "Données, fournisseurs OAuth, cookies et contrôle du compte."
+    }
+  },
+  "sidebar": {
+    "title": "Besoin d'une réponse directe ?",
+    "description": "Pour les questions de compte, de réservation ou de confidentialité qui ne sont pas couvertes ici, contactez l'équipe Morocco Discovery.",
+    "cta": "Contacter le support"
+  },
+  "sections": {
+    "accounts": {
+      "title": "Comptes",
+      "questions": [
+        {
+          "question": "Ai-je besoin d'un compte pour parcourir Morocco Discovery ?",
+          "answer": "Non. Vous pouvez explorer les destinations et restaurants sans vous connecter. Un compte est utile pour les fonctionnalités de profil, les préférences enregistrées et la planification personnalisée."
+        },
+        {
+          "question": "Puis-je me connecter avec Google ou Facebook ?",
+          "answer": "Oui. Morocco Discovery prend en charge la connexion sociale via Supabase OAuth. Google et Facebook utilisent le même flux de rappel sécurisé dans l'application."
+        },
+        {
+          "question": "Où puis-je voir les détails de mon compte ?",
+          "answer": "Après connexion, ouvrez Mon profil dans la barre de navigation. La page de profil affiche les détails du compte et propose une option de déconnexion."
+        }
+      ]
+    },
+    "planning": {
+      "title": "Planification",
+      "questions": [
+        {
+          "question": "Puis-je utiliser Morocco Discovery pour planifier un voyage complet ?",
+          "answer": "Le site est conçu pour comparer destinations, lieux de séjour et options de restauration. Les fonctionnalités d'itinéraires sélectionnés peuvent évoluer avec votre workflow de planification."
+        },
+        {
+          "question": "Les restaurants et destinations sont-ils réservables ?",
+          "answer": "Les fiches servent d'abord à la découverte et à la planification. Si un lieu permet une réservation ou une demande directe, la page peut orienter l'utilisateur vers cette action."
+        },
+        {
+          "question": "Comment les destinations sont-elles sélectionnées ?",
+          "answer": "Les destinations sont choisies selon leur valeur culturelle, leur intérêt de voyage, leur identité locale et leur cohérence avec l'expérience Morocco Discovery."
+        }
+      ]
+    },
+    "payments": {
+      "title": "Paiements",
+      "questions": [
+        {
+          "question": "Morocco Discovery traite-t-il les paiements ?",
+          "answer": "Pas actuellement. Si des paiements sont ajoutés plus tard, les détails de paiement devront être gérés par un prestataire dédié plutôt que stockés directement dans l'application."
+        },
+        {
+          "question": "La création d'un compte est-elle payante ?",
+          "answer": "Non. Créer un compte n'entraîne aucun frais. Tout futur service payant devra afficher clairement son prix avant l'achat."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Confidentialité et sécurité",
+      "questions": [
+        {
+          "question": "Quelles informations sont collectées lors de la connexion ?",
+          "answer": "L'application peut recevoir des informations de base comme l'email, le nom, le fournisseur d'authentification et les métadonnées du profil. La politique de confidentialité donne plus de détails."
+        },
+        {
+          "question": "Comment les sessions sont-elles protégées ?",
+          "answer": "L'authentification repose sur les sessions Supabase et des vérifications côté serveur pour les pages protégées comme le profil."
+        },
+        {
+          "question": "Où lire la politique de confidentialité ?",
+          "answer": "La politique de confidentialité est disponible sur /privacy-policy et explique la collecte des données, les cookies, les fournisseurs OAuth, la conservation et les options de contact."
+        }
+      ]
+    }
+  },
+  "moreHelp": {
+    "eyebrow": "Plus d'aide",
+    "title": "Explorer les sections populaires",
+    "destinations": "Destinations",
+    "restaurants": "Restaurants",
+    "privacy": "Confidentialité"
+  }
+}

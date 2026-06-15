@@ -1,0 +1,29 @@
+{
+  "notAvailable": "غير متوفر",
+  "fallbackName": "مستكشف المغرب",
+  "fallbackEmail": "لا يوجد بريد إلكتروني مرفق",
+  "fallbackRole": "مسافر",
+  "hero": {
+    "alt": "فناء مغربي",
+    "eyebrow": "الملف الشخصي",
+    "title": "حسابك في Morocco Discovery",
+    "description": "راجع تفاصيل حسابك وتحقق من صلاحياتك الحالية واجعل ملف سفرك جاهزا للمسار القادم."
+  },
+  "actions": {
+    "exploreDestinations": "استكشف الوجهات",
+    "signOut": "تسجيل الخروج"
+  },
+  "details": {
+    "sectionEyebrow": "تفاصيل الحساب",
+    "sectionTitle": "المعلومات الشخصية",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "role": "دور الحساب",
+    "memberSince": "عضو منذ"
+  },
+  "session": {
+    "eyebrow": "الجلسة",
+    "title": "تم تسجيل الدخول بأمان",
+    "description": "سجل الخروج عند الانتهاء من استخدام هذا الجهاز."
+  }
+}

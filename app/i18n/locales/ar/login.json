@@ -1,0 +1,12 @@
+{
+  "welcome": "مرحباً بكم في الواحة الحديثة",
+  "description": "سجل الدخول لاكتشاف رحلات فاخرة منتقاة، مأكولات رائعة، وأسرار المغرب الخالدة.",
+  "signIn": "تسجيل الدخول",
+  "emailPlaceholder": "البريد الإلكتروني",
+  "passwordPlaceholder": "كلمة المرور",
+  "forgotPassword": "هل نسيت كلمة المرور؟",
+  "noAccount": "ليس لديك حساب؟",
+  "signUp": "أنشئ حساباً الآن",
+  "businessOwner": "هل أنت صاحب نشاط؟",
+  "partnerWithMoroccool": "كن شريكا مع Moroccool"
+}

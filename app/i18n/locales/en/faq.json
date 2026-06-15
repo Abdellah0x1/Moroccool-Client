@@ -1,0 +1,100 @@
+{
+  "hero": {
+    "alt": "Moroccan architecture",
+    "eyebrow": "FAQ",
+    "title": "Answers for planning with confidence.",
+    "description": "Find quick guidance about accounts, travel discovery, bookings, privacy, and support across Morocco Discovery."
+  },
+  "categories": {
+    "accounts": {
+      "label": "Accounts",
+      "description": "Login, signup, profiles, and saved preferences."
+    },
+    "travel": {
+      "label": "Travel",
+      "description": "Destinations, stays, restaurants, and itineraries."
+    },
+    "privacy": {
+      "label": "Privacy",
+      "description": "Data, OAuth providers, cookies, and account control."
+    }
+  },
+  "sidebar": {
+    "title": "Need a direct answer?",
+    "description": "For account, booking, or privacy questions that are not covered here, contact the Morocco Discovery team.",
+    "cta": "Contact support"
+  },
+  "sections": {
+    "accounts": {
+      "title": "Accounts",
+      "questions": [
+        {
+          "question": "Do I need an account to browse Morocco Discovery?",
+          "answer": "No. You can explore destinations and restaurants without signing in. An account is useful for profile features, saved preferences, and personalized travel planning."
+        },
+        {
+          "question": "Can I sign in with Google or Facebook?",
+          "answer": "Yes. Morocco Discovery supports social login through Supabase OAuth. Google and Facebook sign-ins use the same secure callback flow in the app."
+        },
+        {
+          "question": "Where can I see my account details?",
+          "answer": "After signing in, open My Profile from the navigation bar. Your profile page shows account details and includes a sign-out option."
+        }
+      ]
+    },
+    "planning": {
+      "title": "Planning",
+      "questions": [
+        {
+          "question": "Can I use Morocco Discovery to plan a full trip?",
+          "answer": "The site is designed to help you compare destinations, places to stay, and dining options. Curated itinerary features can be expanded as your travel planning workflow grows."
+        },
+        {
+          "question": "Are restaurant and destination listings bookable?",
+          "answer": "Listings are presented as discovery and planning resources. If a place supports booking or direct inquiry, the page can route users toward the available action."
+        },
+        {
+          "question": "How are destinations selected?",
+          "answer": "Destinations are curated around cultural value, travel appeal, local identity, and how well they fit the Morocco Discovery experience."
+        }
+      ]
+    },
+    "payments": {
+      "title": "Payments",
+      "questions": [
+        {
+          "question": "Does Morocco Discovery process payments?",
+          "answer": "Not currently. If payments are added later, checkout details should be handled by a dedicated payment provider rather than stored directly in the app."
+        },
+        {
+          "question": "Will I be charged for creating an account?",
+          "answer": "No. Creating an account does not create a charge. Any future paid service should show pricing clearly before purchase."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy And Security",
+      "questions": [
+        {
+          "question": "What information is collected when I sign in?",
+          "answer": "The app may receive basic account details such as your email, name, authentication provider, and profile metadata. You can review the privacy policy for a fuller explanation."
+        },
+        {
+          "question": "How are sessions protected?",
+          "answer": "Authentication is handled with Supabase sessions and server-side checks for protected pages such as your profile."
+        },
+        {
+          "question": "Where can I read the privacy policy?",
+          "answer": "The privacy policy is available at /privacy-policy and explains data collection, cookies, OAuth providers, retention, and contact options."
+        }
+      ]
+    }
+  },
+  "moreHelp": {
+    "eyebrow": "More help",
+    "title": "Explore popular sections",
+    "destinations": "Destinations",
+    "restaurants": "Restaurants",
+    "privacy": "Privacy"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "return": "Return",
+  "welcome": "Begin Your Journey",
+  "description": "Create an account to unlock personalized recommendations, save your favorite destinations, and plan the perfect Moroccan getaway.",
+  "signUpTitle": "Create Account",
+  "signUpSubtitle": "Fill in your details below to get started",
+  "namePlaceholder": "Full Name",
+  "emailPlaceholder": "Email Address",
+  "passwordPlaceholder": "Password",
+  "signUpButton": "Sign Up",
+  "hasAccount": "Already have an account?",
+  "signInLink": "Sign in"
+}

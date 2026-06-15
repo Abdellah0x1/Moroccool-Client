@@ -1,0 +1,13 @@
+{
+  "return": "Retour",
+  "welcome": "Commencez Votre Voyage",
+  "description": "Créez un compte pour débloquer des recommandations personnalisées, sauvegarder vos destinations préférées et planifier l'escapade marocaine parfaite.",
+  "signUpTitle": "Créer un Compte",
+  "signUpSubtitle": "Remplissez vos informations ci-dessous pour commencer",
+  "namePlaceholder": "Nom Complet",
+  "emailPlaceholder": "Adresse Email",
+  "passwordPlaceholder": "Mot de passe",
+  "signUpButton": "S'inscrire",
+  "hasAccount": "Vous avez déjà un compte ?",
+  "signInLink": "Se connecter"
+}

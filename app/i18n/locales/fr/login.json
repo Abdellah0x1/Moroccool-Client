@@ -1,0 +1,12 @@
+{
+  "welcome": "Bienvenue dans l'Oasis Moderne",
+  "description": "Connectez-vous pour découvrir des voyages de luxe sélectionnés, une gastronomie exquise et les secrets intemporels du Maroc.",
+  "signIn": "Se Connecter",
+  "emailPlaceholder": "Adresse Email",
+  "passwordPlaceholder": "Mot de passe",
+  "forgotPassword": "Mot de passe oublié ?",
+  "noAccount": "Vous n'avez pas de compte ?",
+  "signUp": "Créer un compte",
+  "businessOwner": "Vous êtes propriétaire d'un établissement ?",
+  "partnerWithMoroccool": "Devenir partenaire Moroccool"
+}

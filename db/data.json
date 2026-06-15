@@ -1,0 +1,192 @@
+[
+    {
+        "name": "Bliss Rooftop",
+        "city": "Casablanca",
+        "address": "Angle Boulevard Brahim Roudani & Rue Abou, Al Faid Al Masri, Casablanca 20320 Morocco",
+        "type": "Restaurant",
+        "rating": 4.8,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766296/Bliss_Rooftop_frsfw2.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766296/Bliss_Rooftop_1_obsnq2.jpg"
+        ],
+        "phone": "+212 660-157553",
+        "website": "https://blissrooftop.ma/",
+        "openingHours": {
+            "Mon-Sun": "12:00PM - 01:00 AM"
+        }
+    },
+    {
+        "name": "La Sqala",
+        "city": "Casablanca",
+        "address": "Boulevard des Almohades, Casablanca 20250 Morocco",
+        "type": "Restaurant",
+        "rating": 4.1,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766503/la_sqala_q8ktkn.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766503/la_sqaala1_diblmj.jpg"
+        ],
+        "phone": "+212 5222-60960",
+        "website": "http://www.sqala.ma",
+        "openingHours": {
+            "Mon-Sun": "8:00 AM - 11:00 PM"
+        }
+    },
+    {
+        "name": "Green Black",
+        "city": "Casablanca",
+        "address": "Boulevard des Almohades Marina Shopping Center, Casablanca 20250 Morocco",
+        "type": "Restaurant",
+        "rating": 4.8,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766797/green_black_wedskl.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766796/green_black_2_q4q9li.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766796/green_black_1_qjijak.jpg"
+        ],
+        "phone": "+212 5222-96045",
+        "website": "http://www.greenblack.ma",
+        "openingHours": {
+            "Mon-Sun": "8:30 AM - 11:00PM"
+        }
+    },
+    {
+        "name": "Green Black",
+        "city": "Casablanca",
+        "address": "Boulevard des Almohades Marina Shopping Center, Casablanca 20250 Morocco",
+        "type": "Restaurant",
+        "rating": 4.8,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766797/green_black_wedskl.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766796/green_black_2_q4q9li.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780766796/green_black_1_qjijak.jpg"
+        ],
+        "phone": "+212 5222-96045",
+        "website": "http://www.greenblack.ma",
+        "openingHours": {
+            "Mon-Sun": "8:30 AM - 11:00PM"
+        }
+    },
+    {
+        "name": "Dar Dada",
+        "city": "Casablanca",
+        "address": "31 IMM, Rue El Arsa, Casablanca 20250 Morocco",
+        "type": "Restaurant",
+        "rating": 4.6,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767249/dar_dada_2_a0mpgj.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767249/dar_dada_t8gham.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767249/dar_dada_1_cwa9jc.jpg"
+        ],
+        "phone": "+212 661-602602",
+        "website": "https://dardada.com",
+        "openingHours": {
+            "Mon-Sun": "12:00 PM - 3:30 PM 7:00 PM - 1:00 AM"
+        }
+    },
+    {
+        "name": "L'Mida Marrakech",
+        "city": "Marrakech",
+        "address": "78 Bis Derb Nkhal, Marrakech 40030 Morocco",
+        "type": "Restaurant",
+        "rating": 4.8,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767711/L_Mida_Marrakech_n84joj.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767711/L_Mida_Marrakech_2_od8ad4.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780767710/L_Mida_Marrakech_1_lkcx2n.jpg"
+        ],
+        "phone": "+212 5244-43662",
+        "website": "http://lmidamarrakech.com",
+        "openingHours": {
+            "Mon-Sun": "12:00 PM - 10:30 PM"
+        }
+    },
+    {
+        "name": "Krepchy",
+        "city": "Marrakech",
+        "address": "Kasbah Street Near Saadian Tombs, Marrakech 40014 Morocco",
+        "type": "Restaurant",
+        "rating": 4.8,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780768267/krepchy_qzeczp.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780768266/.krepchy_1_zjlawl.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780768266/krepchy_2_jm75yw.jpg"
+        ],
+        "phone": "+212 610-392017",
+        "website": "https://www.krepchy.com",
+        "openingHours": {
+            "Mon-Sun": "9:00 AM - 12:00 PM"
+        }
+    },
+    {
+        "name": "Lao Marrakech",
+        "city": "Marrakech",
+        "address": "Et 16, Benhafssa 14, Rue Oued El Makhazine Au Dessus Du Kfc De Guéliz, Marrakech 40000 Morocco",
+        "type": "Restaurant",
+        "rating": 4.9,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773409/les_jardins_2_nqox6k.jpg ",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780768702/Lao_Marrakech_2_hgvmbq.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780768702/Lao_Marrakech_lu5wy2.jpg"
+        ],
+        "phone": "+212 662-868040",
+        "website": "http://www.laomarrakech.com",
+        "openingHours": {
+            "Mon-Sun": "9:00 AM - 12:00 PM"
+        }
+    },
+    {
+        "name": "Les Jardins de la Koutoubia",
+        "city": "Marrakech",
+        "address": "26 Rue de la Koutoubia, Marrakech 40000 Morocco",
+        "type": "Hotel",
+        "rating": 4.5,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773409/les_jardins_2_nqox6k.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773409/les_jardins_1_auzucg.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773410/les_jardins_ebwj8k.jpg"
+        ],
+        "phone": "+212 5243-88800",
+        "website": "http://www.lesjardinsdelakoutoubia.com/"
+    },
+    {
+        "name": "Riad Abaca Badra",
+        "city": "Marrakech",
+        "address": "Arset Aouzal Road Bab Doukkala, Marrakech 40000 Morocco",
+        "type": "Hotel",
+        "rating": 5,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773813/riad_abaca_badra_2_bga2gb.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773813/riad_abaca_badra_1_ldc1kh.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780773813/riad_abaca_badra_kankhc.jpg"
+        ],
+        "phone": "+212 656-648107",
+        "website": "http://www.riad-abaca.com/"
+    },
+    {
+        "name": "Riad Dar des Arts",
+        "city": "Marrakech",
+        "address": "Rue Riad Zitoune el Jdid Derb Tbib 50, Marrakech 40000 Morocco",
+        "type": "Hotel",
+        "rating": 5,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774371/Riad_Dar_des_Arts_1_ymtbpx.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774380/Riad_Dar_des_Arts_wwzzti.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774372/Riad_Dar_des_Arts_2_e106ys.jpg"
+        ],
+        "phone": "+212 661-727093",
+        "website": "http://www.leclosdesarts.com"
+    },
+    {
+        "name": "STORY Le Carrousel Rabat",
+        "city": "Rabat",
+        "address": "Avenue Mustapha Assayeh, Rabat 11111 Morocco",
+        "type": "Hotel",
+        "rating": 5,
+        "images": [
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774643/STORY_Le_Carrousel_yauoo8.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774642/STORY_Le_Carrousel_3_jeqxkn.jpg",
+            "https://res.cloudinary.com/dcw6rqiaz/image/upload/v1780774642/STORY_Le_Carrousel_2_kmmezs.jpg"
+        ],
+        "phone": "+212 5372-34444",
+        "website": "https://story-lecarrousel-rabat.com/"
+    }
+]

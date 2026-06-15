@@ -1,0 +1,89 @@
+{
+  "hero": {
+    "alt": "Cour de riad marocain",
+    "eyebrow": "Politique de confidentialité",
+    "title": "Comment Morocco Discovery protège vos informations.",
+    "description": "Cette politique explique ce que nous collectons, pourquoi nous l'utilisons et les choix dont vous disposez en utilisant Morocco Discovery.",
+    "lastUpdated": "Dernière mise à jour : {{date}}"
+  },
+  "lastUpdatedDate": "4 juin 2026",
+  "highlights": {
+    "account": {
+      "label": "Données du compte",
+      "value": "Nom, email, fournisseur d'authentification et détails du profil"
+    },
+    "travel": {
+      "label": "Activité de voyage",
+      "value": "Recherches, préférences enregistrées, avis et demandes de réservation"
+    },
+    "protection": {
+      "label": "Protection",
+      "value": "Contrôles d'accès, sessions sécurisées et infrastructure de confiance"
+    }
+  },
+  "summary": {
+    "eyebrow": "Résumé",
+    "title": "La confidentialité en bref",
+    "description": "Morocco Discovery utilise les informations personnelles pour gérer les comptes, personnaliser la découverte de voyage, maintenir des sessions sécurisées et répondre aux demandes.",
+    "cta": "Contacter l'équipe confidentialité"
+  },
+  "sections": {
+    "collect": {
+      "title": "Informations collectées",
+      "items": [
+        "Informations de compte comme votre nom, adresse email, détails de profil et fournisseur d'authentification.",
+        "Préférences de voyage, recherches de destinations, intérêts pour les restaurants, éléments enregistrés, avis et détails de demandes que vous choisissez d'envoyer.",
+        "Informations techniques comme le type de navigateur, l'appareil, l'adresse IP, les cookies et les événements d'utilisation de base.",
+        "Données de profil OAuth partagées par des fournisseurs comme Google ou Facebook lorsque vous choisissez de vous connecter via eux."
+      ]
+    },
+    "use": {
+      "title": "Utilisation des informations",
+      "items": [
+        "Créer et gérer votre compte Morocco Discovery.",
+        "Personnaliser les recommandations de destinations, restaurants et voyages.",
+        "Répondre aux messages de support, demandes de réservation et requêtes de compte.",
+        "Améliorer les performances du site, prévenir les abus et sécuriser le service."
+      ]
+    },
+    "providers": {
+      "title": "Authentification et prestataires",
+      "items": [
+        "Nous utilisons Supabase pour l'authentification, la gestion des sessions et le stockage des données liées au compte.",
+        "Lorsque vous vous connectez avec Google ou Facebook, ces fournisseurs traitent votre connexion selon leurs propres conditions de confidentialité.",
+        "Nous pouvons utiliser des prestataires d'infrastructure, d'analyse, d'email, d'hébergement d'images et de support uniquement pour exploiter le service.",
+        "Nous ne vendons pas vos informations personnelles."
+      ]
+    },
+    "cookies": {
+      "title": "Cookies et sessions",
+      "items": [
+        "Nous utilisons des cookies essentiels pour vous garder connecté et protéger les routes authentifiées.",
+        "Nous pouvons utiliser des cookies de préférence pour mémoriser la langue, l'interface et les choix de navigation de voyage.",
+        "Vous pouvez contrôler les cookies via votre navigateur, mais désactiver les cookies essentiels peut empêcher certaines fonctionnalités de compte."
+      ]
+    },
+    "choices": {
+      "title": "Vos choix",
+      "items": [
+        "Vous pouvez mettre à jour les détails du compte depuis votre profil lorsque disponible.",
+        "Vous pouvez vous déconnecter à tout moment depuis la page de profil.",
+        "Vous pouvez demander l'accès, la correction, la suppression ou l'export de vos informations personnelles en nous contactant.",
+        "Vous pouvez arrêter l'accès OAuth en modifiant les autorisations dans vos paramètres Google ou Facebook."
+      ]
+    },
+    "retention": {
+      "title": "Conservation et sécurité",
+      "items": [
+        "Nous conservons les informations personnelles seulement le temps nécessaire pour fournir le service, respecter nos obligations, résoudre des litiges ou protéger la plateforme.",
+        "Nous utilisons des mesures techniques et organisationnelles conçues pour protéger les informations personnelles.",
+        "Aucun service en ligne ne peut garantir une sécurité parfaite ; utilisez donc un mot de passe solide et protégez l'accès à votre email et à vos comptes OAuth."
+      ]
+    }
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Questions sur cette politique",
+    "description": "Pour toute demande ou question liée à la confidentialité, contactez Morocco Discovery à contact@moroccodiscovery.com ou écrivez à 123 Avenue Mohammed V, Guéliz, Marrakech 40000."
+  }
+}

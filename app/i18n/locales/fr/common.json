@@ -1,0 +1,50 @@
+{
+  "brand": "Morocco Discovery",
+  "nav": {
+    "home": "Accueil",
+    "destinations": "Destinations",
+    "restaurants": "Restaurants",
+    "accomodation": "Séjours",
+    "login": "Connexion",
+    "profile": "Mon profil",
+    "business": "Mon business",
+    "listBusiness": "Référencer votre business",
+    "mobileNavigation": "Navigation mobile"
+  },
+  "actions": {
+    "planTrip": "Planifier mon voyage",
+    "explore": "Explorer"
+  },
+  "search": {
+    "destinationPlaceholder": "Où aller ?",
+    "cuisineType": "Type de cuisine",
+    "searchButton": "Rechercher"
+  },
+  "language": {
+    "english": "Anglais",
+    "french": "Français",
+    "arabic": "Arabe",
+    "select": "Choisir la langue"
+  },
+  "footer": {
+    "description": "Vivez la magie du Maroc. Des souks animés de Marrakech aux dunes paisibles du Sahara, découvrez un univers de patrimoine et d'élégance.",
+    "exploreTitle": "Explorer",
+    "destinations": "Destinations",
+    "fineDining": "Gastronomie",
+    "experiences": "Expériences",
+    "itineraries": "Itinéraires sélectionnés",
+    "supportTitle": "Support",
+    "about": "À propos",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "privacy": "Politique de confidentialité",
+    "contactTitle": "Nous contacter",
+    "address": "123 Avenue Mohammed V,\nGuéliz, Marrakech 40000",
+    "copyright": "Morocco Discovery. Tous droits réservés.",
+    "terms": "Conditions d'utilisation",
+    "cookiePolicy": "Politique des cookies",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter"
+  }
+}

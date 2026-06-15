@@ -1,0 +1,29 @@
+{
+  "notAvailable": "Non disponible",
+  "fallbackName": "Explorateur du Maroc",
+  "fallbackEmail": "Aucun email associé",
+  "fallbackRole": "voyageur",
+  "hero": {
+    "alt": "Cour marocaine",
+    "eyebrow": "Profil",
+    "title": "Votre compte Morocco Discovery",
+    "description": "Consultez les détails de votre compte, vérifiez votre accès actuel et gardez votre profil de voyage prêt pour le prochain itinéraire."
+  },
+  "actions": {
+    "exploreDestinations": "Explorer les destinations",
+    "signOut": "Se déconnecter"
+  },
+  "details": {
+    "sectionEyebrow": "Détails du compte",
+    "sectionTitle": "Informations personnelles",
+    "fullName": "Nom complet",
+    "email": "Adresse email",
+    "role": "Rôle du compte",
+    "memberSince": "Membre depuis"
+  },
+  "session": {
+    "eyebrow": "Session",
+    "title": "Connecté en toute sécurité",
+    "description": "Déconnectez-vous lorsque vous avez terminé sur cet appareil."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "brand": "Moroccool",
+  "nav": {
+    "home": "Home",
+    "destinations": "Destinations",
+    "restaurants": "Restaurants",
+    "accomodation": "Stays",
+    "login": "Login",
+    "profile": "My Profile",
+    "business": "My Business",
+    "listBusiness": "List your business",
+    "mobileNavigation": "Mobile navigation"
+  },
+  "actions": {
+    "planTrip": "Plan My Trip",
+    "explore": "Explore"
+  },
+  "search": {
+    "destinationPlaceholder": "Where to go?",
+    "cuisineType": "Cuisine type",
+    "searchButton": "Search"
+  },
+  "language": {
+    "english": "English",
+    "french": "French",
+    "arabic": "Arabic",
+    "select": "Select language"
+  },
+  "footer": {
+    "description": "Experience the magic of Morocco. From the bustling souks of Marrakech to the serene dunes of the Sahara, discover a world of luxury and heritage.",
+    "exploreTitle": "Explore",
+    "destinations": "Destinations",
+    "fineDining": "Fine Dining",
+    "experiences": "Experiences",
+    "itineraries": "Curated Itineraries",
+    "supportTitle": "Support",
+    "about": "About Us",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "privacy": "Privacy Policy",
+    "contactTitle": "Contact Us",
+    "address": "123 Avenue Mohammed V,\nGueliz, Marrakech 40000",
+    "copyright": "Morocco Discovery. All rights reserved.",
+    "terms": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "twitter": "Twitter"
+  }
+}
