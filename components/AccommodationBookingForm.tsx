@@ -213,7 +213,7 @@ export function AccommodationBookingForm({
               type="number"
               name="rooms"
               min="1"
-              max="10"
+              max="7"
               value={rooms}
               onChange={(event) => setRooms(Number(event.target.value))}
               required
@@ -230,7 +230,7 @@ export function AccommodationBookingForm({
               type="number"
               name="guests"
               min="1"
-              max="30"
+              max="20"
               defaultValue="2"
               required
               className="h-12 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 pl-11 pr-3 text-sm font-semibold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"

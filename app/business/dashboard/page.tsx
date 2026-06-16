@@ -1,11 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ArrowRight,
   BadgeCheck,
+  BarChart,
   BookOpenCheck,
-  Building2,
-  CalendarCheck,
   CalendarDays,
   CircleDollarSign,
   ClipboardCheck,
@@ -15,8 +12,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getBusinessByOwnerId, getListingByBusinessId } from "@/lib/business";
-import { getRestaurantBookingsForOwner } from "@/lib/bookings";
+import { getBookingsForOwner } from "@/lib/bookings";
 import { getCurrentProfile, requireUser } from "@/lib/auth";
+import {
+  ChartBarInteractive,
+  type BookingChartDatum,
+} from "@/components/BarChart";
+import type { OwnerBooking } from "@/types";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "Not available";
@@ -81,6 +83,98 @@ function getCommissionLabel(model: string | null, value: number | null) {
   return `${value} ${formatLabel(model, "commission")}`;
 }
 
+function toLocalIsoDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getBookingActivityDate(booking: OwnerBooking) {
+  if (!booking.created_at) return null;
+
+  const date = new Date(booking.created_at);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return toLocalIsoDate(date);
+}
+
+function getLatestBookingActivityDate(bookings: OwnerBooking[]) {
+  return bookings.reduce<Date | null>((latest, booking) => {
+    const activityDate = getBookingActivityDate(booking);
+
+    if (!activityDate) return latest;
+
+    const date = new Date(`${activityDate}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) return latest;
+    if (!latest || date > latest) return date;
+
+    return latest;
+  }, null);
+}
+
+function getEmptyChartRows(endDate: Date, days: number): BookingChartDatum[] {
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(endDate);
+    date.setDate(endDate.getDate() - (days - index - 1));
+
+    return {
+      date: toLocalIsoDate(date),
+      pending: 0,
+      confirmed: 0,
+      rejected: 0,
+      cancelled: 0,
+      total: 0,
+    } satisfies BookingChartDatum;
+  });
+}
+
+function fillBookingChartRows(rows: BookingChartDatum[], bookings: OwnerBooking[]) {
+  const rowsByDate = new Map(rows.map((row) => [row.date, row]));
+
+  bookings.forEach((booking) => {
+    const activityDate = getBookingActivityDate(booking);
+    const row = activityDate ? rowsByDate.get(activityDate) : null;
+
+    if (!row) return;
+
+    row[booking.status] += 1;
+    row.total += 1;
+  });
+
+  return rows;
+}
+
+function getChartTotal(rows: BookingChartDatum[]) {
+  return rows.reduce((total, row) => total + row.total, 0);
+}
+
+function getBookingChartData(bookings: OwnerBooking[], days = 14): BookingChartDatum[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const currentRows = fillBookingChartRows(
+    getEmptyChartRows(today, days),
+    bookings,
+  );
+
+  if (getChartTotal(currentRows) > 0 || bookings.length === 0) {
+    return currentRows;
+  }
+
+  const latestActivityDate = getLatestBookingActivityDate(bookings);
+
+  if (!latestActivityDate) return currentRows;
+
+  return fillBookingChartRows(
+    getEmptyChartRows(latestActivityDate, days),
+    bookings,
+  );
+}
+
 export default async function BusinessDashboard() {
   const user = await requireUser();
   const profile = await getCurrentProfile();
@@ -94,14 +188,17 @@ export default async function BusinessDashboard() {
   const listingType = String(listing?.type ?? "").toLowerCase();
   const hasListing = Boolean(listing);
   const isRestaurantListing = listingType === "restaurant";
+  const isHotelListing = listingType === "hotel";
+  const isBookableListing = isRestaurantListing || isHotelListing;
   const statusMeta = getStatusMeta(business?.status);
   const StatusIcon = statusMeta.icon;
-  const bookingResult = isRestaurantListing
-    ? await getRestaurantBookingsForOwner(user.id)
+  const bookingResult = isBookableListing
+    ? await getBookingsForOwner(user.id)
     : { bookings: [] };
   const bookings = bookingResult.bookings ?? [];
   const pendingBookings = bookings.filter((booking) => booking.status === "pending").length;
   const confirmedBookings = bookings.filter((booking) => booking.status === "confirmed").length;
+  const bookingChartData = getBookingChartData(bookings);
 
   const overviewStats = [
     {
@@ -130,42 +227,7 @@ export default async function BusinessDashboard() {
     },
   ];
 
-  const quickActions = [
-    {
-      title: "Business profile",
-      description: "Review submitted name, address, contact details, and owner information.",
-      href: "/business/profile",
-      icon: Building2,
-      active: true,
-    },
-    {
-      title: hasListing ? "Edit listing" : "Create listing",
-      description: hasListing
-        ? "Update photos, contact details, location, and public listing content."
-        : "Add the public listing travelers see before they request a booking.",
-      href: "/business/listing",
-      icon: Sparkles,
-      active: business?.status === "approved",
-    },
-    {
-      title: "Availability",
-      description: isRestaurantListing
-        ? "Manage table request hours, capacity, and service windows."
-        : "Create a restaurant listing before managing table availability.",
-      href: "/business/availability",
-      icon: CalendarCheck,
-      active: isRestaurantListing,
-    },
-    {
-      title: "Bookings",
-      description: isRestaurantListing
-        ? "Review pending table requests, then confirm, decline, or cancel them."
-        : "Restaurant table requests appear here after a restaurant listing exists.",
-      href: "/business/bookings",
-      icon: CalendarDays,
-      active: isRestaurantListing,
-    },
-  ];
+
 
   return (
     <div className="space-y-6">
@@ -179,7 +241,7 @@ export default async function BusinessDashboard() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
             Monitor the operational pieces that matter: approval status,
-            listing readiness, availability, and table requests.
+            listing readiness, availability, and booking requests.
           </p>
         </div>
 
@@ -216,54 +278,18 @@ export default async function BusinessDashboard() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                Next steps
+                Requests created
               </p>
               <h2 className="mt-1 text-xl font-bold text-gray-950">
-                Owner actions
+                Recent 14-day activity
               </h2>
             </div>
-            <ClipboardCheck className="h-5 w-5 text-md-green" aria-hidden="true" />
+
+            <BarChart className="h-5 w-5 text-md-green" aria-hidden="true" />
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            {quickActions.map(({ title, description, href, icon: Icon, active }) =>
-              active ? (
-                <Link
-                  key={title}
-                  href={href}
-                  className="group rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 transition hover:border-md-green/35 hover:bg-white"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <Icon className="h-5 w-5 text-md-green" aria-hidden="true" />
-                    <ArrowRight className="h-4 w-4 text-gray-400 transition group-hover:translate-x-1 group-hover:text-md-green" aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-4 text-base font-bold text-gray-950">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    {description}
-                  </p>
-                </Link>
-              ) : (
-                <div
-                  key={title}
-                  className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 opacity-75"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <Icon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-500">
-                      Locked
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-base font-bold text-gray-950">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    {description}
-                  </p>
-                </div>
-              ),
-            )}
+          <div className="mt-5">
+            <ChartBarInteractive data={bookingChartData} />
           </div>
         </div>
 
@@ -342,4 +368,3 @@ export default async function BusinessDashboard() {
     </div>
   );
 }
-

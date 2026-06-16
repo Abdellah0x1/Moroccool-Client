@@ -211,7 +211,7 @@ export default async function AccommodationBookingPage({
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   { label: "Status", value: "Pending first", icon: Clock3 },
-                  { label: "Stay size", value: "1-30 guests", icon: UsersRound },
+                  { label: "Stay size", value: "1-20 guests", icon: UsersRound },
                   { label: "Room choice", value: roomOptions.length ? `${roomOptions.length} types` : "On request", icon: BedDouble },
                 ].map(({ label, value, icon: Icon }) => (
                   <div key={label}>

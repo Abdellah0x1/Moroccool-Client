@@ -81,21 +81,45 @@ export type Business = {
 
 
 
-export type RestaurantBooking = {
+export type BookingStatus = "pending" | "confirmed" | "rejected" | "cancelled"
+
+type BaseOwnerBooking = {
     id: number,
-    restaurant_booking_id?: number,
-    restaurant_id: number,
+    type: "restaurant" | "hotel",
+    listing_id: number,
     business_id: number | string | null,
     customer_name: string,
     customer_email: string,
     customer_phone: string,
-    requested_date: string,
-    requested_time: string,
-    guests: number,
-    status: "pending" | "confirmed" | "rejected" | "cancelled",
-    occasion: string | null,
+    status: BookingStatus,
     notes: string | null,
     owner_note: string | null,
     created_at: string | null,
     updated_at: string | null,
 }
+
+export type RestaurantBooking = BaseOwnerBooking & {
+    type: "restaurant",
+    restaurant_booking_id?: number,
+    restaurant_id: number,
+    requested_date: string,
+    requested_time: string,
+    guests: number,
+    occasion: string | null,
+}
+
+export type AccommodationBooking = BaseOwnerBooking & {
+    type: "hotel",
+    accommodation_booking_id?: number,
+    accommodation_id: number,
+    room_type_id: number | null,
+    room_type_name: string | null,
+    check_in: string,
+    check_out: string,
+    guests: number,
+    rooms: number,
+    arrival_time: string | null,
+    quoted_price: number | null,
+}
+
+export type OwnerBooking = RestaurantBooking | AccommodationBooking
