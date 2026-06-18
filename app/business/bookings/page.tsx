@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  ArrowRight,
   BadgeCheck,
   Ban,
   BedDouble,
@@ -15,6 +16,8 @@ import {
   Utensils,
   UsersRound,
   XCircle,
+  Search,
+  Filter,
 } from "lucide-react";
 import { updateBookingStatus } from "@/app/actions/booking-actions";
 import { Button } from "@/components/ui/button";
@@ -26,6 +29,8 @@ import type {
   OwnerBooking,
   RestaurantBooking,
 } from "@/types";
+import { StackId } from "recharts/types/util/ChartUtils";
+import { start } from "repl";
 
 type StatusMeta = {
   label: string;
@@ -329,63 +334,77 @@ function AccommodationBookingCard({ booking }: { booking: AccommodationBooking }
   const nights = getStayNights(booking.check_in, booking.check_out);
 
   return (
-    <article className="rounded-lg border border-md-gold/20 bg-white px-5 py-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] ${statusMeta.className}`}>
-              <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              {statusMeta.label}
-            </span>
-            {booking.room_type_name ? (
-              <span className="rounded-full border border-md-gold/25 bg-md-sand px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">
-                {booking.room_type_name}
+    <article className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-md-green/30">
+      <div className="absolute left-0 top-0 h-full w-1 bg-md-green opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="px-6 py-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] shadow-sm transition-colors ${statusMeta.className}`}>
+                <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                {statusMeta.label}
               </span>
-            ) : null}
+              {booking.room_type_name ? (
+                <span className="rounded-full border border-md-gold/25 bg-md-sand px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark shadow-sm">
+                  {booking.room_type_name}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-5 flex items-center gap-3 font-display text-2xl font-bold text-md-brown-dark sm:text-3xl">
+              <span>{formatDate(booking.check_in)}</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span>{formatDate(booking.check_out)}</span>
+            </div>
+
+            <p className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold text-md-brown-dark">
+              <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 border border-gray-100">
+                <BedDouble className="h-4 w-4 text-md-green" aria-hidden="true" />
+                {booking.rooms} {booking.rooms === 1 ? "room" : "rooms"}
+              </span>
+              <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 border border-gray-100">
+                <UsersRound className="h-4 w-4 text-md-green" aria-hidden="true" />
+                {booking.guests} guests
+              </span>
+            </p>
           </div>
-          <h2 className="mt-4 font-display text-3xl font-bold text-md-brown-dark">
-            {formatDate(booking.check_in)} to {formatDate(booking.check_out)}
-          </h2>
-          <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-bold text-md-brown-dark">
-            <span className="inline-flex items-center gap-2">
-              <BedDouble className="h-4 w-4 text-md-green" aria-hidden="true" />
-              {booking.rooms} {booking.rooms === 1 ? "room" : "rooms"}
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <UsersRound className="h-4 w-4 text-md-green" aria-hidden="true" />
-              {booking.guests} guests
-            </span>
-          </p>
+
+          <div className="shrink-0 lg:mt-0 mt-4">
+            <BookingActions booking={booking} />
+          </div>
         </div>
 
-        <BookingActions booking={booking} />
-      </div>
+        <div className="mt-8 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-2 xl:grid-cols-4">
+          <ContactDetails booking={booking} />
 
-      <div className="mt-5 grid gap-4 border-t border-md-gold/15 pt-5 md:grid-cols-3 xl:grid-cols-4">
-        <ContactDetails booking={booking} />
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-            Stay
-          </p>
-          <p className="mt-2 text-sm leading-6 text-md-muted">
-            {nights || "Flexible"} {nights === 1 ? "night" : "nights"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-            Arrival
-          </p>
-          <p className="mt-2 text-sm leading-6 text-md-muted">
-            {formatTime(booking.arrival_time)}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-            Quote
-          </p>
-          <p className="mt-2 text-sm leading-6 text-md-muted">
-            {formatMoney(booking.quoted_price)}
-          </p>
+          <div className="flex flex-col rounded-lg border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-gray-50">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
+              Stay Length
+            </p>
+            <p className="mt-2 text-base font-semibold text-gray-900">
+              {nights || "Flexible"} {nights === 1 ? "night" : "nights"}
+            </p>
+          </div>
+
+          <div className="flex flex-col rounded-lg border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-gray-50">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
+              Expected Arrival
+            </p>
+            <p className="mt-2 text-base font-semibold text-gray-900">
+              {formatTime(booking.arrival_time)}
+            </p>
+          </div>
+
+          <div className="flex flex-col rounded-lg border border-md-green/20 bg-md-green/5 p-4 transition-colors hover:bg-md-green/10">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-green">
+              Quote Total
+            </p>
+            <p className="mt-2 text-base font-bold text-md-green">
+              {formatMoney(booking.quoted_price)}
+            </p>
+          </div>
         </div>
       </div>
     </article>
@@ -400,9 +419,17 @@ function BookingCard({ booking }: { booking: OwnerBooking }) {
   return <RestaurantBookingCard booking={booking} />;
 }
 
-export default async function BusinessBookingsPage() {
+const BOOKING_FILTER_OPTIONS = [
+  { label: "All", value: null },
+  { label: "Confirmed", value: "confirmed" },
+  { label: "Declined", value: "rejected" },
+  { label: "Pending", value: "pending" },
+]
+
+export default async function BusinessBookingsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[] | undefined, q?: string | string[] | undefined }> }) {
   const user = await requireUser();
   const profile = await getCurrentProfile();
+  const params = searchParams ? await searchParams : {};
 
   if (profile?.role !== "business_owner") {
     redirect("/profile");
@@ -410,6 +437,16 @@ export default async function BusinessBookingsPage() {
 
   const { business, listing, bookings, error } = await getBookingsForOwner(user.id);
   const listingType = String(listing?.type ?? "").toLowerCase();
+  const activeStatus = params?.status ? String(params.status).toLowerCase() : null;
+  const activeQuery = params?.q ? String(params.q).toLowerCase() : null;
+
+  const filterBookings = bookings.filter(booking => {
+    const matchesStatus = activeStatus ? booking.status.toLowerCase() === activeStatus : true;
+    const searchAbleText = [booking.customer_name, booking.customer_email].filter(Boolean).join("").toLowerCase();
+    const matchesQuery = activeQuery ? searchAbleText.includes(activeQuery) : true
+
+    return matchesStatus && matchesQuery
+  });
 
   if (!listing) {
     return (
@@ -516,6 +553,46 @@ export default async function BusinessBookingsPage() {
         </div>
       </section>
 
+      <section>
+        <div className="space-y-5">
+          <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <form className="flex w-full max-w-xl flex-col sm:flex-row gap-3">
+              {params.status && <input type='hidden' name="status" value={params.status} />}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                <input
+                  type="text"
+                  name="q"
+                  defaultValue={activeQuery ?? ''}
+                  className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-md-green focus:bg-white"
+                  placeholder="Search by user name or email..."
+                />
+              </div>
+              <Button
+                type="submit"
+                className="h-11 rounded-lg bg-md-green px-6 font-bold text-white hover:bg-md-brown-dark transition-colors shrink-0"
+              >
+                Search
+              </Button>
+            </form>
+            <div className="space-y-5 mt-5">
+              <div className="text-gray-400 flex gap-2 text-xs font-bold items-center uppercasse tracking-[0.14em]">
+                <Filter className="w-4 h-4" />
+                <p>Filters</p>
+              </div>
+              <div className="flex gap-2 flex-wrap ">
+                {BOOKING_FILTER_OPTIONS.map(filter => {
+                  const queryParams = params?.q ? `&q=${params.q}` : ''
+                  const href = filter.value ? `/business/bookings?status=${filter.value}${queryParams}` : `/business/bookings?${queryParams}`
+                  const isActive = params?.status === filter.value || (!params?.status && !filter.value)
+                  return <Link key={filter.label} href={href} className={`inline-flex items-center rounded-lg border px-3 h-9 ${isActive ? 'bg-md-green text-white' : 'bg-white text-md-brown'}`}>{filter.label}</Link>
+                })}
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-5">
           {error ? (
@@ -528,8 +605,8 @@ export default async function BusinessBookingsPage() {
                 The booking inbox could not load the detail table for this listing type.
               </p>
             </section>
-          ) : bookings.length > 0 ? (
-            bookings.map((booking) => (
+          ) : filterBookings.length > 0 ? (
+            filterBookings.map((booking) => (
               <BookingCard key={booking.id} booking={booking} />
             ))
           ) : (
