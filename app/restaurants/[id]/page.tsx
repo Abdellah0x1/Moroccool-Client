@@ -164,7 +164,7 @@ export default async function RestaurantDetails({ params }: RestaurantPageProps)
   }
 
   const mainImage = restaurant.images?.[0] || "/placeholder-restaurant.jpg";
-  const reviews = await getAllReviews({ placeId: restaurant.id });
+  const reviews = await getAllReviews({ placeId: Number(id) });
   const reviewCountLabel =
     reviews.length === 1
       ? t("detail.reviewSingular", { defaultValue: "review" })
@@ -313,7 +313,7 @@ export default async function RestaurantDetails({ params }: RestaurantPageProps)
                 {reviews.length} {reviewCountLabel}
               </div>
             </div>
-            <ReviewForm placeId={restaurant.id} />
+            <ReviewForm placeId={Number(id)} />
 
             <div className="mt-10">
               <div className="mb-5">

@@ -8,10 +8,12 @@ import {
   ClipboardCheck,
   Clock3,
   EyeOff,
+  Hotel,
   MessageSquareText,
   Sparkles,
+  Star,
 } from "lucide-react";
-import { getBusinessByOwnerId, getListingByBusinessId } from "@/lib/business";
+import { getBusinessByOwnerId, getListingByBusinessId, getRecentReviews } from "@/lib/business";
 import { getBookingsForOwner } from "@/lib/bookings";
 import { getCurrentProfile, requireUser } from "@/lib/auth";
 import {
@@ -19,6 +21,7 @@ import {
   type BookingChartDatum,
 } from "@/components/BarChart";
 import type { OwnerBooking } from "@/types";
+import Link from "next/link";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "Not available";
@@ -185,6 +188,7 @@ export default async function BusinessDashboard() {
 
   const business = await getBusinessByOwnerId(user.id);
   const listing = business ? await getListingByBusinessId(Number(business.id)) : null;
+  const recentReviews = listing?.id ? await getRecentReviews(Number(listing.id)) : [];
   const listingType = String(listing?.type ?? "").toLowerCase();
   const hasListing = Boolean(listing);
   const isRestaurantListing = listingType === "restaurant";
@@ -295,58 +299,13 @@ export default async function BusinessDashboard() {
 
         <aside className="space-y-6">
           <section className="rounded-lg border border-gray-200 bg-white px-5 py-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-              Snapshot
-            </p>
-            <h2 className="mt-1 text-xl font-bold text-gray-950">
-              Application summary
-            </h2>
-            <dl className="mt-5 space-y-4">
-              <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                  City
-                </dt>
-                <dd className="mt-1 text-sm font-semibold text-gray-950">
-                  {formatLabel(business?.city)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                  Submitted
-                </dt>
-                <dd className="mt-1 text-sm font-semibold text-gray-950">
-                  {formatDate(business?.created_at)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                  Commission
-                </dt>
-                <dd className="mt-1 text-sm font-semibold text-gray-950">
-                  {getCommissionLabel(
-                    business?.commission_model ?? null,
-                    business?.commission_value ?? null,
-                  )}
-                </dd>
-              </div>
-            </dl>
+            <div className="flex items-center gap-4">
+              <Hotel className="h-5 w-5 text-md-green" aria-hidden="true" />
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400"> Recent Booking requests </p>
+            </div>
           </section>
 
-          <section className="rounded-lg border border-gray-200 bg-white px-5 py-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <CircleDollarSign className="h-5 w-5 text-md-green" aria-hidden="true" />
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                Payments
-              </p>
-            </div>
-            <h2 className="mt-3 text-xl font-bold text-gray-950">
-              Commission starts after approved bookings
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-600">
-              Payout and commission details can become their own route after
-              the booking flow is fully connected.
-            </p>
-          </section>
+
 
           <section className="rounded-lg border border-gray-200 bg-white px-5 py-5 shadow-sm">
             <div className="flex items-center gap-3">
@@ -355,13 +314,55 @@ export default async function BusinessDashboard() {
                 Reviews
               </p>
             </div>
-            <h2 className="mt-3 text-xl font-bold text-gray-950">
-              Guest feedback will appear here
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-gray-600">
-              Once review ownership is connected to partner listings, this
-              panel can show recent guest notes.
-            </p>
+            <div className="mt-3 flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-950">
+                Recent Guest Feedback
+              </h2>
+              <span className="text-xs font-medium text-md-green bg-md-green/10 px-2 py-1 rounded-full">
+                {recentReviews.length} New
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {recentReviews.map((review) => (
+                <div
+                  className="group flex flex-col gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all duration-300 hover:bg-white hover:shadow-md hover:-translate-y-0.5"
+                  key={review.id}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-full shadow-sm border border-gray-100">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-3 w-3 ${i < (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
+                          aria-hidden="true"
+                        />
+                      ))}
+                      <span className="ml-1 text-xs font-bold text-gray-700">{review.rating}</span>
+                    </div>
+                    {review.created_at && (
+                      <span className="text-xs text-gray-400 font-medium">
+                        {new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed italic">
+                    "{review.comment}"
+                  </p>
+                </div>
+              ))}
+              {recentReviews.length === 0 && (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 p-8 text-center bg-gray-50/50">
+                  <MessageSquareText className="h-8 w-8 text-gray-300 mb-3" />
+                  <p className="text-sm font-medium text-gray-600">No reviews yet</p>
+                  <p className="text-xs text-gray-400 mt-1">When guests review your property, they'll appear here.</p>
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex justify-center items-center">
+              <Link className="w-full rounded-full bg-md-green text-white font-bold p-2 text-center " href="/business/reviews">
+                View all reviews
+              </Link>
+            </div>
           </section>
         </aside>
       </section>

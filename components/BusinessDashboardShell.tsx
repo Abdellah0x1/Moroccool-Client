@@ -13,6 +13,7 @@ import {
   PanelLeft,
   Settings,
   Sparkles,
+  Star,
   UserRound,
   X,
 } from "lucide-react";
@@ -37,6 +38,11 @@ const NAV_ITEMS = [
     icon: CalendarCheck,
   },
   {
+    href: '/business/reviews',
+    label: 'Reviews',
+    icon: Star
+  },
+  {
     href: "/business/listing",
     label: "Listing",
     icon: Sparkles,
@@ -45,8 +51,9 @@ const NAV_ITEMS = [
     href: "/business/profile",
     label: "Business profile",
     icon: Building2,
-  },
+  }
 ];
+
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -69,11 +76,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
-            className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${
-              active
-                ? "border-l-4 border-md-green bg-md-green/10 text-md-green"
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-950"
-            }`}
+            className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${active
+              ? "border-l-4 border-md-green bg-md-green/10 text-md-green"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-950"
+              }`}
           >
             <Icon
               className={`h-[18px] w-[18px] shrink-0 ${active ? "text-md-green" : "text-gray-400"}`}

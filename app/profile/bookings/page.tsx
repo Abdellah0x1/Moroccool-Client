@@ -44,11 +44,10 @@ export default async function BookingsPage() {
                                                     <Utensils className="h-3 w-3" /> Restaurant
                                                 </span>
                                             )}
-                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold capitalize ${
-                                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold capitalize ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                                                 booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-gray-100 text-gray-800'
-                                            }`}>
+                                                    'bg-gray-100 text-gray-800'
+                                                }`}>
                                                 {booking.status || 'Pending'}
                                             </span>
                                         </div>
