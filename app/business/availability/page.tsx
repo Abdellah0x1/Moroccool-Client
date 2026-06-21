@@ -1,134 +1,190 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  BadgeCheck,
-  Ban,
-  CalendarCheck,
-  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CircleAlert,
-  Clock3,
   Hotel,
-  Plus,
-  RotateCcw,
-  Save,
   Sparkles,
-  Trash2,
   Utensils,
   UsersRound,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { getCurrentProfile, requireUser } from "@/lib/auth";
-import { getBusinessByOwnerId, getListingByBusinessId } from "@/lib/business";
+import { getBookingsForOwner } from "@/lib/bookings";
+import type { BookingStatus, OpeningHoursMap, OpeningHoursValue, RestaurantBooking } from "@/types";
 
-const DAY_STATUSES = [
-  { label: "Open normally", value: "open" },
-  { label: "Limited", value: "limited" },
-  { label: "Fully booked", value: "full" },
-  { label: "Closed", value: "closed" },
-];
+const DAY_MS = 86_400_000;
+const SLOT_MINUTES = 30;
+const FIRST_SLOT_MINUTES = 11 * 60;
+const SLOT_COUNT = 24;
+const WEEKDAY_KEYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
 
-const SETUP_REQUIREMENTS = [
-  {
-    label: "Weekly rhythm",
-    title: "Bookable days and regular hours",
-    description: "Choose which weekdays accept table requests and when each service opens and closes.",
-    icon: CalendarDays,
-  },
-  {
-    label: "Service inventory",
-    title: "Lunch, dinner, and custom blocks",
-    description: "Release bookable seats per service window and mark blocks as open, limited, full, or closed.",
-    icon: Clock3,
-  },
-  {
-    label: "Party rules",
-    title: "Guest count and seating limits",
-    description: "Set the minimum party, maximum party, seating duration, and large-group handling.",
-    icon: UsersRound,
-  },
-  {
-    label: "Exceptions",
-    title: "Closures, private events, and notes",
-    description: "Override a specific date when staffing, weather, buyouts, or holidays change capacity.",
-    icon: Ban,
-  },
-];
+type AvailabilityPageProps = {
+  searchParams: Promise<{
+    week?: string | string[];
+  }>;
+};
 
-const BOOKING_RULES = [
-  {
-    label: "Confirmation mode",
-    value: "Manual approval",
-    detail: "Every request stays pending until the restaurant confirms or declines it.",
-  },
-  {
-    label: "Advance notice",
-    value: "2 hours",
-    detail: "Guests cannot request a table too close to service without calling.",
-  },
-  {
-    label: "Booking window",
-    value: "30 days",
-    detail: "How far into the future guests can submit table requests.",
-  },
-  {
-    label: "Table hold",
-    value: "15 minutes",
-    detail: "How long a confirmed table is held before staff can release it.",
-  },
-];
+type CalendarBooking = {
+  booking: RestaurantBooking;
+  dayIndex: number;
+  slotIndex: number;
+};
 
-const SERVICE_WINDOWS = [
-  {
-    label: "Lunch",
-    start: "12:00",
-    end: "15:00",
-    seats: 28,
-    maxParty: 8,
-    status: "Open",
-    note: "Normal service",
-  },
-  {
-    label: "Dinner",
-    start: "19:00",
-    end: "23:00",
-    seats: 42,
-    maxParty: 10,
-    status: "Limited",
-    note: "Few tables left",
-  },
-  {
-    label: "Custom block",
-    start: "20:00",
-    end: "22:00",
-    seats: 0,
-    maxParty: 0,
-    status: "Fully booked",
-    note: "Large group reservation",
-  },
-];
+type DaySchedule = {
+  active: boolean;
+  start?: string;
+  end?: string;
+};
 
-function formatFullDate(date: Date) {
-  return new Intl.DateTimeFormat("en", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(date);
+function firstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
-function getWeekDays() {
-  const today = new Date();
+function toLocalIsoDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-  return Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
+  return `${year}-${month}-${day}`;
+}
 
-    return {
-      label: index === 0 ? "Today" : new Intl.DateTimeFormat("en", { weekday: "short" }).format(date),
-      day: new Intl.DateTimeFormat("en", { day: "2-digit" }).format(date),
-      month: new Intl.DateTimeFormat("en", { month: "short" }).format(date),
-      selected: index === 0,
-    };
+function parseIsoDate(value: string | undefined) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfWeek(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const sundayBasedDay = start.getDay();
+  const daysSinceMonday = sundayBasedDay === 0 ? 6 : sundayBasedDay - 1;
+  start.setDate(start.getDate() - daysSinceMonday);
+
+  return start;
+}
+
+function getSelectedWeek(week: string | undefined) {
+  const requestedWeek = parseIsoDate(week);
+  return startOfWeek(requestedWeek ?? new Date());
+}
+
+function getWeekDays(weekStart: Date) {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return date;
   });
+}
+
+function getSlots() {
+  return Array.from({ length: SLOT_COUNT }, (_, index) => {
+    const minutes = FIRST_SLOT_MINUTES + index * SLOT_MINUTES;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(remainingMinutes).padStart(2, "0")}`;
+  });
+}
+
+function timeToMinutes(value: string) {
+  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+function getWeekHref(weekStart: Date, offset: number) {
+  const nextWeek = new Date(weekStart);
+  nextWeek.setDate(weekStart.getDate() + offset * 7);
+
+  return `/business/availability?week=${toLocalIsoDate(nextWeek)}`;
+}
+
+function getWeekLabel(weekStart: Date) {
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  const startLabel = new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(weekStart);
+  const endLabel = new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(weekEnd);
+
+  return `${startLabel} – ${endLabel}`;
+}
+
+function getCalendarBookings(bookings: RestaurantBooking[], weekStart: Date) {
+  return bookings.reduce<CalendarBooking[]>((calendarBookings, booking) => {
+    if (booking.status !== "pending" && booking.status !== "confirmed") {
+      return calendarBookings;
+    }
+
+    const bookingDate = parseIsoDate(booking.requested_date);
+    const requestedMinutes = timeToMinutes(booking.requested_time);
+
+    if (!bookingDate || requestedMinutes === null) return calendarBookings;
+
+    const dayIndex = Math.round((bookingDate.getTime() - weekStart.getTime()) / DAY_MS);
+    const slotIndex = Math.floor((requestedMinutes - FIRST_SLOT_MINUTES) / SLOT_MINUTES);
+
+    if (dayIndex < 0 || dayIndex > 6 || slotIndex < 0 || slotIndex >= SLOT_COUNT) {
+      return calendarBookings;
+    }
+
+    calendarBookings.push({ booking, dayIndex, slotIndex });
+    return calendarBookings;
+  }, []);
+}
+
+function groupBookingsBySlot(bookings: CalendarBooking[]) {
+  return bookings.reduce<Map<string, CalendarBooking[]>>((groups, booking) => {
+    const key = `${booking.dayIndex}-${booking.slotIndex}`;
+    const group = groups.get(key) ?? [];
+    group.push(booking);
+    groups.set(key, group);
+    return groups;
+  }, new Map());
+}
+
+function getStatusStyles(status: BookingStatus) {
+  if (status === "confirmed") {
+    return "border-md-green/35 bg-md-green text-white hover:bg-md-brown-dark";
+  }
+
+  return "border-md-gold/50 bg-md-gold text-md-brown-dark hover:bg-md-gold-dark hover:text-white";
+}
+
+function getDaySchedule(openingHours: unknown, date: Date): DaySchedule | null {
+  if (!openingHours || typeof openingHours !== "object" || Array.isArray(openingHours)) {
+    return null;
+  }
+
+  const weekday = WEEKDAY_KEYS[(date.getDay() + 6) % 7];
+  const value = (openingHours as OpeningHoursMap)[weekday] as OpeningHoursValue | undefined;
+
+  if (!value || typeof value === "string") return null;
+
+  return {
+    active: value.active !== false,
+    start: value.start,
+    end: value.end,
+  };
 }
 
 function LockedState({
@@ -172,7 +228,9 @@ function LockedState({
   );
 }
 
-export default async function BusinessAvailabilityPage() {
+export default async function BusinessAvailabilityPage({
+  searchParams,
+}: AvailabilityPageProps) {
   const user = await requireUser();
   const profile = await getCurrentProfile();
 
@@ -180,19 +238,32 @@ export default async function BusinessAvailabilityPage() {
     redirect("/profile");
   }
 
-  const business = await getBusinessByOwnerId(user.id);
-  const listing = business ? await getListingByBusinessId(Number(business.id)) : null;
+  const params = await searchParams;
+  const weekStart = getSelectedWeek(firstValue(params.week));
+  const weekDays = getWeekDays(weekStart);
+  const slots = getSlots();
+  const { business, listing, bookings, error } = await getBookingsForOwner(user.id);
   const listingType = String(listing?.type ?? "").toLowerCase();
-  const selectedDate = new Date();
-  const weekDays = getWeekDays();
 
   if (!listing) {
     return (
       <LockedState
         icon={Sparkles}
         title="Create your restaurant listing first"
-        description="Availability opens after your public restaurant listing exists, so guests know which place they are requesting."
+        description="The availability calendar opens once your public restaurant listing exists, so table requests always have a place to land."
         ctaLabel="Create listing"
+        ctaHref="/business/listing"
+      />
+    );
+  }
+
+  if (listingType === "hotel") {
+    return (
+      <LockedState
+        icon={Hotel}
+        title="Manage room availability in your listing"
+        description="Hotel stays use room inventory and date ranges rather than table time slots. Update room types and stay rules from your listing."
+        ctaLabel="Edit listing"
         ctaHref="/business/listing"
       />
     );
@@ -201,518 +272,224 @@ export default async function BusinessAvailabilityPage() {
   if (listingType !== "restaurant") {
     return (
       <LockedState
-        icon={Hotel}
-        title="Hotel availability uses room rules"
-        description="This page is built for restaurant table requests. Hotel availability should stay with rooms, check-in rules, and stay details."
+        icon={Sparkles}
+        title="Availability is not set up for this listing"
+        description="Choose Restaurant as the listing type to use the table-booking calendar."
         ctaLabel="Edit listing"
         ctaHref="/business/listing"
       />
     );
   }
 
-  const summaryCards = [
-    {
-      label: "Today's status",
-      value: "Open normally",
-      icon: BadgeCheck,
-      className: "text-md-green",
-    },
-    {
-      label: "Bookable seats",
-      value: "70",
-      icon: UsersRound,
-      className: "text-md-green",
-    },
-    {
-      label: "Next blocked period",
-      value: "Dinner full",
-      icon: Ban,
-      className: "text-red-700",
-    },
-    {
-      label: "Rule set",
-      value: "Manual",
-      icon: CalendarCheck,
-      className: "text-md-gold-dark",
-    },
-  ];
+  const restaurantBookings = bookings.filter(
+    (booking): booking is RestaurantBooking => booking.type === "restaurant",
+  );
+  const calendarBookings = getCalendarBookings(restaurantBookings, weekStart);
+  const bookingsBySlot = groupBookingsBySlot(calendarBookings);
+  const pendingCount = calendarBookings.filter(
+    ({ booking }) => booking.status === "pending",
+  ).length;
+  const confirmedCount = calendarBookings.filter(
+    ({ booking }) => booking.status === "confirmed",
+  ).length;
 
   return (
     <div className="space-y-6">
-      <section className="border-b border-gray-200 pb-6">
+      <section className="flex flex-col gap-5 border-b border-gray-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-lg border border-md-green/20 bg-md-green/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-md-green">
-                <Utensils className="h-4 w-4" aria-hidden="true" />
-                Restaurant listing live
-              </div>
-              <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950">
-                Availability
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-                Define the schedule, capacity, and booking rules guests use
-                when they request a table at {listing.name}.
-              </p>
-            </div>
+          <div className="inline-flex items-center gap-2 rounded-lg border border-md-green/20 bg-md-green/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-md-green">
+            <Utensils className="h-4 w-4" aria-hidden="true" />
+            Restaurant calendar
+          </div>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950">
+            Availability
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+            See active table requests for {listing.name}. Pending and confirmed
+            requests are shown here; declined and cancelled requests do not block a slot.
+          </p>
+        </div>
 
-            <div className="rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                Selected restaurant
-              </p>
-              <p className="mt-2 text-xl font-bold text-gray-950">
-                {listing.name}
-              </p>
-              <p className="mt-1 text-sm text-gray-600">{listing.city}</p>
-            </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
+              Restaurant
+            </p>
+            <p className="mt-1 text-sm font-bold text-gray-950">{business?.name ?? listing.name}</p>
+          </div>
+          <Link
+            href="/business/listing"
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
+          >
+            Edit hours
+          </Link>
+        </div>
+      </section>
+
+      {error ? (
+        <div role="alert" className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+          <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+          <p>{error}. Try refreshing the page or return to the bookings inbox.</p>
+        </div>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">This week</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-950">{calendarBookings.length}</p>
+          <p className="mt-1 text-sm text-gray-600">Active table requests</p>
+        </div>
+        <div className="rounded-lg border border-md-gold/30 bg-md-gold/10 px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">Pending</p>
+          <p className="mt-2 text-2xl font-semibold text-md-brown-dark">{pendingCount}</p>
+          <p className="mt-1 text-sm text-md-brown">Awaiting your response</p>
+        </div>
+        <div className="rounded-lg border border-md-green/25 bg-md-green/10 px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-green">Confirmed</p>
+          <p className="mt-2 text-2xl font-semibold text-md-green">{confirmedCount}</p>
+          <p className="mt-1 text-sm text-md-brown">Blocking table availability</p>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-md-gold/20 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-md-gold/15 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">Weekly schedule</p>
+            <h2 className="mt-1 text-xl font-bold text-gray-950">{getWeekLabel(weekStart)}</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href={getWeekHref(weekStart, -1)}
+              className="grid h-10 w-10 place-items-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50"
+              aria-label="Previous week"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/business/availability"
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
+            >
+              Today
+            </Link>
+            <Link
+              href={getWeekHref(weekStart, 1)}
+              className="grid h-10 w-10 place-items-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50"
+              aria-label="Next week"
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-md-gold/15 px-4 py-3 text-xs font-semibold text-gray-600 sm:px-5">
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-md-gold" aria-hidden="true" />
+            Pending request
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-md-green" aria-hidden="true" />
+            Confirmed booking
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-gray-200" aria-hidden="true" />
+            Closed day
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <div
+            className="grid min-w-[980px]"
+            style={{
+              gridTemplateColumns: "76px repeat(7, minmax(128px, 1fr))",
+              gridTemplateRows: `76px repeat(${slots.length}, 72px)`,
+            }}
+          >
+            <div
+              className="sticky left-0 top-0 z-30 border-b border-r border-md-gold/15 bg-md-cream/95 backdrop-blur"
+              style={{ gridColumn: 1, gridRow: 1 }}
+            />
+
+            {weekDays.map((date, index) => {
+              const schedule = getDaySchedule(listing.openingHours, date);
+              const isClosed = schedule?.active === false;
+              const isToday = toLocalIsoDate(date) === toLocalIsoDate(new Date());
+
+              return (
+                <div
+                  key={toLocalIsoDate(date)}
+                  className={`sticky top-0 z-20 flex flex-col justify-center border-b border-r border-md-gold/15 px-4 py-2 backdrop-blur ${isClosed ? "bg-gray-100" : "bg-md-cream/95"}`}
+                  style={{ gridColumn: index + 2, gridRow: 1 }}
+                >
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-md-gold-dark">
+                    {new Intl.DateTimeFormat("en", { weekday: "short" }).format(date)}
+                  </p>
+                  <p className={`mt-0.5 text-xl font-bold ${isToday ? "text-md-green" : "text-md-brown-dark"}`}>
+                    {new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date)}
+                  </p>
+                  <p className="mt-0.5 text-[11px] font-medium text-gray-500">
+                    {isClosed ? "Closed" : schedule?.start && schedule?.end ? `${schedule.start}–${schedule.end}` : "Hours not set"}
+                  </p>
+                </div>
+              );
+            })}
+
+            {slots.flatMap((_, rowIndex) =>
+              weekDays.map((date, colIndex) => {
+                const isClosed = getDaySchedule(listing.openingHours, date)?.active === false;
+
+                return (
+                  <div
+                    key={`cell-${rowIndex}-${colIndex}`}
+                    className={`border-b border-r border-gray-100/80 ${isClosed ? "bg-gray-50" : "bg-white"}`}
+                    style={{ gridColumn: colIndex + 2, gridRow: rowIndex + 2 }}
+                  />
+                );
+              }),
+            )}
+
+            {slots.map((slot, index) => (
+              <div
+                key={slot}
+                className="sticky left-0 z-20 flex items-start justify-end border-b border-r border-md-gold/15 bg-white px-3 pt-1"
+                style={{ gridColumn: 1, gridRow: index + 2 }}
+              >
+                <span className="-mt-2 bg-white px-1 text-xs font-bold tracking-wider text-md-muted">{slot}</span>
+              </div>
+            ))}
+
+            {Array.from(bookingsBySlot.entries()).map(([key, slotBookings]) => {
+              const { dayIndex, slotIndex } = slotBookings[0];
+
+              return (
+                <div
+                  key={key}
+                  className="z-10 m-1 flex min-w-0 flex-col gap-1 overflow-y-auto"
+                  style={{ gridColumn: dayIndex + 2, gridRow: slotIndex + 2 }}
+                >
+                  {slotBookings.map(({ booking }) => (
+                    <Link
+                      key={booking.id}
+                      href={`/business/bookings?status=${booking.status}`}
+                      className={`group relative min-w-0 rounded-md border px-2.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-md-gold focus:ring-offset-1 ${getStatusStyles(booking.status)}`}
+                      aria-label={`View ${booking.status} booking for ${booking.customer_name} at ${booking.requested_time.slice(0, 5)}`}
+                    >
+                      <p className="truncate text-xs font-bold">{booking.customer_name}</p>
+                      <span className="mt-0.5 flex items-center gap-1 text-[11px] opacity-90">
+                        <UsersRound className="h-3 w-3" aria-hidden="true" />
+                        {booking.guests} guests
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {summaryCards.map(({ label, value, icon: Icon, className }) => (
-            <div
-              key={label}
-              className="rounded-lg border border-gray-200 bg-white px-5 py-5 shadow-sm"
-            >
-              <Icon className={`h-5 w-5 ${className}`} aria-hidden="true" />
-              <p className="mt-4 text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                {label}
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-gray-950">
-                {value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-                  Admin setup
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-bold text-md-brown-dark">
-                  What the restaurant specifies
-                </h2>
-              </div>
-              <p className="max-w-xl text-sm leading-6 text-md-muted">
-                These rules turn regular opening hours into table inventory the
-                booking flow can evaluate before a request reaches staff.
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {SETUP_REQUIREMENTS.map(({ label, title, description, icon: Icon }) => (
-                <div
-                  key={label}
-                  className="rounded-lg border border-md-gold/20 bg-white px-5 py-5 shadow-sm"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-md-sand text-md-green">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                        {label}
-                      </p>
-                      <h3 className="mt-2 font-display text-2xl font-bold text-md-brown-dark">
-                        {title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-md-muted">
-                        {description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-md-sand text-md-green">
-                <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-                  Booking rules
-                </p>
-                <h2 className="font-display text-3xl font-bold text-md-brown-dark">
-                  Default request settings
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                  Confirmation mode
-                </span>
-                <select
-                  defaultValue="manual"
-                  className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                >
-                  <option value="manual">Manual approval</option>
-                  <option value="instant">Instant confirmation</option>
-                  <option value="call_only">Call restaurant only</option>
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                  Seating duration
-                </span>
-                <select
-                  defaultValue="90"
-                  className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                >
-                  <option value="60">60 minutes</option>
-                  <option value="90">90 minutes</option>
-                  <option value="120">120 minutes</option>
-                  <option value="150">150 minutes</option>
-                </select>
-              </label>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                    Min party
-                  </span>
-                  <input
-                    type="number"
-                    min="1"
-                    defaultValue="1"
-                    className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                    Max party
-                  </span>
-                  <input
-                    type="number"
-                    min="1"
-                    defaultValue="10"
-                    className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                  />
-                </label>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                    Advance notice
-                  </span>
-                  <select
-                    defaultValue="2"
-                    className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                  >
-                    <option value="1">1 hour</option>
-                    <option value="2">2 hours</option>
-                    <option value="4">4 hours</option>
-                    <option value="24">1 day</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                    Booking window
-                  </span>
-                  <select
-                    defaultValue="30"
-                    className="mt-2 h-11 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
-                  >
-                    <option value="7">7 days</option>
-                    <option value="14">14 days</option>
-                    <option value="30">30 days</option>
-                    <option value="60">60 days</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <label className="mt-6 block">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                Guest-facing availability note
-              </span>
-              <textarea
-                className="mt-2 min-h-24 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-4 py-3 text-sm text-md-brown-dark outline-none transition placeholder:text-md-muted focus:border-md-gold focus:bg-white"
-                placeholder="Large groups may require a phone confirmation. Terrace seating depends on weather."
-                defaultValue=""
-              />
-            </label>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-                  Date
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-bold text-md-brown-dark">
-                  {formatFullDate(selectedDate)}
-                </h2>
-              </div>
-              <button
-                type="button"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-md-sand-dark bg-md-cream px-4 text-sm font-bold text-md-brown-dark transition hover:border-md-gold hover:bg-white"
-              >
-                <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                Calendar
-              </button>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-              {weekDays.map(({ label, day, month, selected }) => (
-                <button
-                  key={`${label}-${day}`}
-                  type="button"
-                  className={`rounded-lg border px-4 py-3 text-left transition ${
-                    selected
-                      ? "border-md-green bg-md-green text-white"
-                      : "border-md-sand-dark bg-md-cream text-md-brown-dark hover:border-md-gold hover:bg-white"
-                  }`}
-                >
-                  <span className="block text-xs font-bold uppercase tracking-[0.14em]">
-                    {label}
-                  </span>
-                  <span className="mt-2 block font-display text-2xl font-bold">
-                    {day}
-                  </span>
-                  <span className="block text-xs font-semibold">{month}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-md-sand text-md-green">
-                <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-                  Day status
-                </p>
-                <h2 className="font-display text-3xl font-bold text-md-brown-dark">
-                  Request availability
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {DAY_STATUSES.map(({ label, value }) => {
-                const selected = value === "open";
-
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={selected}
-                    className={`rounded-lg border px-4 py-3 text-sm font-bold transition ${
-                      selected
-                        ? "border-md-green bg-md-green text-white"
-                        : "border-md-sand-dark bg-md-cream text-md-brown-dark hover:border-md-gold hover:bg-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <label className="mt-6 block">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                Owner note
-              </span>
-              <textarea
-                className="mt-2 min-h-24 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-4 py-3 text-sm text-md-brown-dark outline-none transition placeholder:text-md-muted focus:border-md-gold focus:bg-white"
-                placeholder="Private event, staff shortage, terrace closed..."
-                defaultValue=""
-              />
-            </label>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-                  Service windows
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-bold text-md-brown-dark">
-                  Lunch, dinner, and time blocks
-                </h2>
-              </div>
-              <Button type="button" variant="outline" className="h-10 gap-2 border-md-gold/30 bg-white font-bold text-md-brown-dark hover:bg-md-sand">
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Add time block
-              </Button>
-            </div>
-
-            <div className="mt-6 overflow-hidden rounded-lg border border-md-gold/20">
-              <div className="hidden grid-cols-[1fr_100px_100px_105px_105px_135px_1fr_64px] gap-3 bg-md-sand px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark xl:grid">
-                <span>Window</span>
-                <span>Starts</span>
-                <span>Ends</span>
-                <span>Seats</span>
-                <span>Max party</span>
-                <span>Status</span>
-                <span>Note</span>
-                <span className="text-right">Actions</span>
-              </div>
-
-              {SERVICE_WINDOWS.map((window) => (
-                <div
-                  key={`${window.label}-${window.start}`}
-                  className="grid gap-3 border-t border-md-gold/15 px-4 py-4 first:border-t-0 xl:grid-cols-[1fr_100px_100px_105px_105px_135px_1fr_64px] xl:items-center"
-                >
-                  <div>
-                    <p className="font-bold text-md-brown-dark">{window.label}</p>
-                    <p className="text-xs text-md-muted xl:hidden">
-                      {window.start} - {window.end}
-                    </p>
-                  </div>
-                  {[
-                    ["Starts", "time", window.start],
-                    ["Ends", "time", window.end],
-                    ["Seats", "number", String(window.seats)],
-                    ["Max party", "number", String(window.maxParty)],
-                  ].map(([label, type, value]) => (
-                    <label key={`${window.label}-${label}`} className="block">
-                      <span className="mb-1 block text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark xl:sr-only">
-                        {label}
-                      </span>
-                      <input
-                        type={type}
-                        min={type === "number" ? "0" : undefined}
-                        defaultValue={value}
-                        className="h-10 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-semibold text-md-brown-dark outline-none focus:border-md-gold focus:bg-white"
-                      />
-                    </label>
-                  ))}
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark xl:sr-only">
-                      Status
-                    </span>
-                    <select
-                      defaultValue={window.status}
-                      className="h-10 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm font-bold text-md-brown-dark outline-none focus:border-md-gold focus:bg-white"
-                    >
-                      <option>Open</option>
-                      <option>Limited</option>
-                      <option>Fully booked</option>
-                      <option>Closed</option>
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark xl:sr-only">
-                      Note
-                    </span>
-                    <input
-                      type="text"
-                      defaultValue={window.note}
-                      className="h-10 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 px-3 text-sm text-md-brown-dark outline-none focus:border-md-gold focus:bg-white"
-                    />
-                  </label>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="grid h-9 w-9 place-items-center rounded-lg border border-md-sand-dark text-md-muted transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                      aria-label={`Delete ${window.label}`}
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <aside className="space-y-8">
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-              Active rules
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-bold text-md-brown-dark">
-              Request guardrails
-            </h2>
-
-            <dl className="mt-5 divide-y divide-md-gold/15 border-y border-md-gold/15">
-              {BOOKING_RULES.map(({ label, value, detail }) => (
-                <div key={label} className="py-4">
-                  <dt className="text-xs font-bold uppercase tracking-[0.16em] text-md-gold-dark">
-                    {label}
-                  </dt>
-                  <dd className="mt-1 font-display text-2xl font-bold text-md-brown-dark">
-                    {value}
-                  </dd>
-                  <dd className="mt-1 text-xs leading-5 text-md-muted">
-                    {detail}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-md-brown-dark px-6 py-6 text-md-cream shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold">
-              Quick actions
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-bold">
-              Adjust today
-            </h2>
-
-            <div className="mt-5 grid gap-3">
-              {[
-                { label: "Close full day", icon: Ban, className: "text-red-200" },
-                { label: "Mark lunch limited", icon: CircleAlert, className: "text-md-gold" },
-                { label: "Mark dinner full", icon: Clock3, className: "text-md-sand" },
-                { label: "Reset to normal hours", icon: RotateCcw, className: "text-md-green" },
-              ].map(({ label, icon: Icon, className }) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="flex h-11 items-center justify-between rounded-lg border border-md-gold/20 bg-md-cream/10 px-4 text-sm font-bold text-md-cream transition hover:border-md-gold/45 hover:bg-md-cream/15"
-                >
-                  <span>{label}</span>
-                  <Icon className={`h-4 w-4 ${className}`} aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-md-gold/20 bg-white px-6 py-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-md-gold-dark">
-              Booking inbox
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-bold text-md-brown-dark">
-              Requests live separately
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-md-muted">
-              Availability controls what guests can request. The bookings inbox
-              is where the restaurant confirms or declines each request.
-            </p>
-            <Link
-              href="/business/bookings"
-              className="mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-md-green px-4 text-sm font-bold text-white transition hover:bg-md-brown-dark"
-            >
-              View bookings
-            </Link>
-          </section>
-        </aside>
-      </section>
-
-      <div className="sticky bottom-0 border-t border-md-gold/20 bg-white/95 px-6 py-3 backdrop-blur lg:hidden">
-        <Button type="button" className="h-11 w-full gap-2 bg-md-green font-bold text-white hover:bg-md-brown-dark">
-          <Save className="h-4 w-4" aria-hidden="true" />
-          Save availability
-        </Button>
-      </div>
+      <p className="text-center text-xs leading-5 text-gray-500">
+        Need to confirm or decline a request? Open the <Link href="/business/bookings" className="font-bold text-md-green hover:underline">bookings inbox</Link> to update its status.
+      </p>
     </div>
   );
 }

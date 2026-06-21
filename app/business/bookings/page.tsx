@@ -585,7 +585,7 @@ export default async function BusinessBookingsPage({ searchParams }: { searchPar
                   const queryParams = params?.q ? `&q=${params.q}` : ''
                   const href = filter.value ? `/business/bookings?status=${filter.value}${queryParams}` : `/business/bookings?${queryParams}`
                   const isActive = params?.status === filter.value || (!params?.status && !filter.value)
-                  return <Link key={filter.label} href={href} className={`inline-flex items-center rounded-lg border px-3 h-9 ${isActive ? 'bg-md-green text-white' : 'bg-white text-md-brown'}`}>{filter.label}</Link>
+                  return <Link key={filter.label} href={href} className={`inline-flex items-center rounded-lg border px-3 h-9 font-bold ${isActive ? 'bg-md-green text-white' : 'bg-white text-md-brown text-gray-950'}`}>{filter.label}</Link>
                 })}
               </div>
             </div>
