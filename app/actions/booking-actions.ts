@@ -44,8 +44,16 @@ function isBookingStatus(value: string): value is BookingStatus {
   )
 }
 
+function toLocalIsoDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 function todayIsoString() {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalIsoDate(new Date());
 }
 
 function getStayNights(checkIn: string, checkOut: string) {
@@ -333,14 +341,14 @@ function getStayDates(checkIn: string, checkOut: string) {
   const end = new Date(`${checkOut}T00:00:00`);
 
   while (current < end) {
-    dates.push(current.toISOString().slice(0, 10));
+    dates.push(toLocalIsoDate(current));
     current.setDate(current.getDate() + 1);
   }
 
   return dates;
 }
 
-async function checkAccommodationAvailability({
+export async function checkAccommodationAvailability({
   supabase,
   roomTypeId,
   checkIn,
@@ -437,6 +445,8 @@ async function checkAccommodationAvailability({
 
   return { available: true };
 }
+
+
 
 
 export async function createAccommodationBooking(

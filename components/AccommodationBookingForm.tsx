@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { createAccommodationBooking } from "@/app/actions/booking-actions";
 import { Button } from "@/components/ui/button";
+import type { GuestAvailabilityCell } from "@/lib/guest-hotel-availability";
 
 export type AccommodationRoomOption = {
   id: number;
@@ -29,6 +30,8 @@ type AccommodationBookingFormProps = {
   stayId: number;
   stayName: string;
   roomOptions: AccommodationRoomOption[];
+  availability: GuestAvailabilityCell[];
+  availabilityError?: string | null;
   defaultName?: string;
   defaultEmail?: string;
   minDate: string;
@@ -51,6 +54,82 @@ function getNights(checkIn: string, checkOut: string) {
   return Math.max(0, Math.round(diff / 86_400_000));
 }
 
+function toLocalIsoDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getStayDates(checkIn: string, checkOut: string) {
+  const start = parseIsoDate(checkIn);
+  const end = parseIsoDate(checkOut);
+
+  if (!start || !end || start >= end) return [];
+
+  const dates: string[] = [];
+  const current = new Date(start);
+
+  while (current < end) {
+    dates.push(toLocalIsoDate(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+
+function getStayAvailability({
+  availabilityByKey,
+  roomTypeId,
+  rooms,
+  checkIn,
+  checkOut,
+}: {
+  availabilityByKey: Map<string, GuestAvailabilityCell>;
+  roomTypeId: string;
+  rooms: number;
+  checkIn: string;
+  checkOut: string;
+}) {
+  if (!roomTypeId) {
+    return { available: false, message: "Choose a room type to see availability." };
+  }
+
+  if (!Number.isInteger(rooms) || rooms < 1) {
+    return { available: false, message: "Choose at least one room." };
+  }
+
+  const dates = getStayDates(checkIn, checkOut);
+
+  if (dates.length === 0) {
+    return { available: false, message: "Choose a check-out date after check-in." };
+  }
+
+  const cells = dates.map((date) => availabilityByKey.get(`${roomTypeId}-${date}`));
+  const unavailableDate = cells.find(
+    (cell) => !cell || !cell.available || cell.sellableUnits < rooms,
+  );
+
+  if (unavailableDate) {
+    return {
+      available: false,
+      message: "One or more nights in this stay are no longer available for the selected room type.",
+    };
+  }
+
+  const minNights = Math.max(...cells.map((cell) => cell?.minNights ?? 1));
+
+  if (dates.length < minNights) {
+    return {
+      available: false,
+      message: `This stay requires a minimum of ${minNights} nights.`,
+    };
+  }
+
+  return { available: true, message: null };
+}
+
 function formatMad(value: number) {
   return new Intl.NumberFormat("en", {
     maximumFractionDigits: 0,
@@ -63,6 +142,8 @@ export function AccommodationBookingForm({
   stayId,
   stayName,
   roomOptions,
+  availability,
+  availabilityError = null,
   defaultName = "",
   defaultEmail = "",
   minDate,
@@ -77,12 +158,29 @@ export function AccommodationBookingForm({
   const [checkIn, setCheckIn] = useState(defaultCheckIn);
   const [checkOut, setCheckOut] = useState(defaultCheckOut);
   const [rooms, setRooms] = useState(1);
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState(
     roomOptions[0]?.id ? String(roomOptions[0].id) : "",
   );
 
   const nights = getNights(checkIn, checkOut);
   const selectedRoom = roomOptions.find((room) => String(room.id) === selectedRoomId);
+  const availabilityByKey = useMemo(
+    () => new Map(availability.map((cell) => [`${cell.roomTypeId}-${cell.date}`, cell])),
+    [availability],
+  );
+  const selectedStayAvailability = useMemo(
+    () => getStayAvailability({
+      availabilityByKey,
+      roomTypeId: selectedRoomId,
+      rooms,
+      checkIn,
+      checkOut,
+    }),
+    [availabilityByKey, checkIn, checkOut, rooms, selectedRoomId],
+  );
+  const availabilityMessage = availabilityError ?? selectionNotice ?? selectedStayAvailability.message;
+  const canSubmit = !availabilityError && selectedStayAvailability.available;
   const estimatedTotal = useMemo(() => {
     if (!selectedRoom?.base_price || nights < 1) return null;
     return selectedRoom.base_price * rooms * nights;
@@ -146,6 +244,16 @@ export function AccommodationBookingForm({
         </div>
       ) : null}
 
+      {availabilityMessage ? (
+        <div
+          role="status"
+          className="mt-6 flex items-start gap-2 rounded-lg border border-md-gold/30 bg-md-gold/10 px-4 py-3 text-sm text-md-brown-dark"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-md-gold-dark" aria-hidden="true" />
+          <p>{availabilityMessage}</p>
+        </div>
+      ) : null}
+
       <div className="mt-7 grid gap-5 md:grid-cols-2">
         <label className="block">
           <span className="text-sm font-bold text-md-brown-dark">Check-in</span>
@@ -156,7 +264,28 @@ export function AccommodationBookingForm({
               name="check_in_date"
               min={minDate}
               value={checkIn}
-              onChange={(event) => setCheckIn(event.target.value)}
+              onChange={(event) => {
+                const nextCheckIn = event.target.value;
+                const checkInCell = availabilityByKey.get(`${selectedRoomId}-${nextCheckIn}`);
+
+                if (!checkInCell || !checkInCell.available || checkInCell.sellableUnits < rooms) {
+                  setSelectionNotice("That check-in date is unavailable for the selected room type and room count.");
+                  return;
+                }
+
+                setSelectionNotice(null);
+                setCheckIn(nextCheckIn);
+
+                if (!getStayAvailability({
+                  availabilityByKey,
+                  roomTypeId: selectedRoomId,
+                  rooms,
+                  checkIn: nextCheckIn,
+                  checkOut,
+                }).available) {
+                  setCheckOut("");
+                }
+              }}
               required
               className="h-12 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 pl-11 pr-3 text-sm font-semibold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
             />
@@ -172,7 +301,24 @@ export function AccommodationBookingForm({
               name="check_out_date"
               min={checkIn || minDate}
               value={checkOut}
-              onChange={(event) => setCheckOut(event.target.value)}
+              onChange={(event) => {
+                const nextCheckOut = event.target.value;
+                const candidate = getStayAvailability({
+                  availabilityByKey,
+                  roomTypeId: selectedRoomId,
+                  rooms,
+                  checkIn,
+                  checkOut: nextCheckOut,
+                });
+
+                if (!candidate.available) {
+                  setSelectionNotice(candidate.message);
+                  return;
+                }
+
+                setSelectionNotice(null);
+                setCheckOut(nextCheckOut);
+              }}
               required
               className="h-12 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 pl-11 pr-3 text-sm font-semibold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
             />
@@ -188,7 +334,11 @@ export function AccommodationBookingForm({
             <select
               name="room_type_id"
               value={selectedRoomId}
-              onChange={(event) => setSelectedRoomId(event.target.value)}
+              onChange={(event) => {
+                setSelectionNotice(null);
+                setSelectedRoomId(event.target.value);
+              }}
+              disabled={roomOptions.length === 0}
               className="h-12 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 pl-11 pr-3 text-sm font-bold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
             >
               {roomOptions.length > 0 ? (
@@ -199,7 +349,7 @@ export function AccommodationBookingForm({
                   </option>
                 ))
               ) : (
-                <option value="">Hotel assigns room type</option>
+                <option value="">No bookable room types available</option>
               )}
             </select>
           </div>
@@ -215,7 +365,10 @@ export function AccommodationBookingForm({
               min="1"
               max="7"
               value={rooms}
-              onChange={(event) => setRooms(Number(event.target.value))}
+              onChange={(event) => {
+                setSelectionNotice(null);
+                setRooms(Number(event.target.value));
+              }}
               required
               className="h-12 w-full rounded-lg border border-md-sand-dark bg-md-cream/40 pl-11 pr-3 text-sm font-semibold text-md-brown-dark outline-none transition focus:border-md-gold focus:bg-white"
             />
@@ -346,7 +499,7 @@ export function AccommodationBookingForm({
         </p>
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !canSubmit}
           className="h-12 gap-2 bg-md-green px-6 font-bold text-white hover:bg-md-brown-dark"
         >
           <Send className="h-4 w-4" aria-hidden="true" />

@@ -4,13 +4,16 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleAlert,
+  BedDouble,
   Hotel,
   Sparkles,
   Utensils,
   UsersRound,
 } from "lucide-react";
 import { getCurrentProfile, requireUser } from "@/lib/auth";
+import { getBusinessByOwnerId, getListingByBusinessId } from "@/lib/business";
 import { getBookingsForOwner } from "@/lib/bookings";
+import { getHotelAvailabilityForOwner } from "@/lib/hotel-availability";
 import type { BookingStatus, OpeningHoursMap, OpeningHoursValue, RestaurantBooking } from "@/types";
 
 const DAY_MS = 86_400_000;
@@ -43,6 +46,24 @@ type DaySchedule = {
   active: boolean;
   start?: string;
   end?: string;
+};
+
+type HotelAvailabilityCell = {
+  roomTypeId: number;
+  roomTypeName: string;
+  date: string;
+  status: string;
+  inventoryLimit: number;
+  bookedRooms: number;
+  sellableUnits: number;
+  minNights: number;
+  ownerNote: string | null;
+};
+
+type HotelRoomType = {
+  id: number;
+  name: string;
+  units: number;
 };
 
 function firstValue(value: string | string[] | undefined) {
@@ -187,6 +208,193 @@ function getDaySchedule(openingHours: unknown, date: Date): DaySchedule | null {
   };
 }
 
+function formatShortDate(value: string) {
+  const date = parseIsoDate(value);
+
+  if (!date) return value;
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function getHotelCellStyles(status: string) {
+  if (status === "closed") {
+    return "border-gray-200 bg-gray-100 text-gray-500";
+  }
+
+  if (status === "limited") {
+    return "border-md-gold/35 bg-md-gold/10 text-md-brown-dark";
+  }
+
+  return "border-md-green/20 bg-white text-gray-950";
+}
+
+function HotelAvailabilityCalendar({
+  listingName,
+  weekStart,
+  roomTypes,
+  dates,
+  cells,
+  error,
+}: {
+  listingName: string;
+  weekStart: Date;
+  roomTypes: HotelRoomType[];
+  dates: string[];
+  cells: HotelAvailabilityCell[];
+  error: string | null | undefined;
+}) {
+  const cellByRoomAndDate = new Map(
+    cells.map((cell) => [`${cell.roomTypeId}-${cell.date}`, cell]),
+  );
+  const sellableUnits = cells.reduce((total, cell) => total + cell.sellableUnits, 0);
+  const bookedRooms = cells.reduce((total, cell) => total + cell.bookedRooms, 0);
+  const closedNights = cells.filter((cell) => cell.status === "closed").length;
+
+  return (
+    <div className="space-y-6">
+      <section className="flex flex-col gap-5 border-b border-gray-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-lg border border-md-green/20 bg-md-green/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-md-green">
+            <Hotel className="h-4 w-4" aria-hidden="true" />
+            Hotel inventory
+          </div>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950">
+            Availability
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+            Track room inventory for {listingName}. Each cell combines your manual availability limit with confirmed stays.
+          </p>
+        </div>
+
+        <Link
+          href="/business/listing"
+          className="inline-flex h-11 items-center justify-center self-start rounded-lg border border-gray-200 bg-white px-4 text-sm font-bold text-gray-700 transition hover:bg-gray-50 lg:self-auto"
+        >
+          Edit rooms
+        </Link>
+      </section>
+
+      {error ? (
+        <div role="alert" className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+          <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+          <p>{error}. Try refreshing the page.</p>
+        </div>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">Room types</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-950">{roomTypes.length}</p>
+          <p className="mt-1 text-sm text-gray-600">Available to sell</p>
+        </div>
+        <div className="rounded-lg border border-md-green/25 bg-md-green/10 px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-green">Sellable room nights</p>
+          <p className="mt-2 text-2xl font-semibold text-md-green">{sellableUnits}</p>
+          <p className="mt-1 text-sm text-md-brown">Across this week</p>
+        </div>
+        <div className="rounded-lg border border-md-gold/30 bg-md-gold/10 px-5 py-4 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">Confirmed / closed</p>
+          <p className="mt-2 text-2xl font-semibold text-md-brown-dark">{bookedRooms} / {closedNights}</p>
+          <p className="mt-1 text-sm text-md-brown">Room nights this week</p>
+        </div>
+      </section>
+
+      {error ? null : roomTypes.length === 0 ? (
+        <section className="rounded-xl border border-dashed border-md-gold/35 bg-white px-6 py-12 text-center shadow-sm">
+          <BedDouble className="mx-auto h-10 w-10 text-md-gold-dark" aria-hidden="true" />
+          <h2 className="mt-5 text-2xl font-bold text-gray-950">Add your room types first</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-gray-600">
+            Room types define the normal number of sellable units. Once they are saved, the inventory calendar will show daily availability here.
+          </p>
+          <Link href="/business/listing" className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-md-green px-4 text-sm font-bold text-white transition hover:bg-md-brown-dark">
+            Add room types
+          </Link>
+        </section>
+      ) : (
+        <section className="rounded-xl border border-md-gold/20 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-md-gold/15 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">Weekly inventory</p>
+              <h2 className="mt-1 text-xl font-bold text-gray-950">{getWeekLabel(weekStart)}</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href={getWeekHref(weekStart, -1)} className="grid h-10 w-10 place-items-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50" aria-label="Previous week">
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link href="/business/availability" className="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50">
+                Today
+              </Link>
+              <Link href={getWeekHref(weekStart, 1)} className="grid h-10 w-10 place-items-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-50" aria-label="Next week">
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-x-5 gap-y-2 border-b border-md-gold/15 px-4 py-3 text-xs font-semibold text-gray-600 sm:px-5">
+            <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-md-green" aria-hidden="true" /> Open inventory</span>
+            <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-md-gold" aria-hidden="true" /> Limited inventory</span>
+            <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-gray-300" aria-hidden="true" /> Closed</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <div
+              className="grid min-w-[1040px]"
+              style={{
+                gridTemplateColumns: "180px repeat(7, minmax(122px, 1fr))",
+                gridTemplateRows: `76px repeat(${roomTypes.length}, 132px)`,
+              }}
+            >
+              <div className="sticky left-0 top-0 z-30 border-b border-r border-md-gold/15 bg-md-cream/95 backdrop-blur" style={{ gridColumn: 1, gridRow: 1 }} />
+
+              {dates.map((date, index) => (
+                <div key={date} className="sticky top-0 z-20 flex flex-col justify-center border-b border-r border-md-gold/15 bg-md-cream/95 px-4 py-2 backdrop-blur" style={{ gridColumn: index + 2, gridRow: 1 }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-md-gold-dark">{parseIsoDate(date) ? new Intl.DateTimeFormat("en", { weekday: "short" }).format(parseIsoDate(date)!) : "Date"}</p>
+                  <p className="mt-0.5 text-xl font-bold text-md-brown-dark">{formatShortDate(date)}</p>
+                </div>
+              ))}
+
+              {roomTypes.map((room, rowIndex) => (
+                <div key={room.id} className="sticky left-0 z-20 flex flex-col justify-center border-b border-r border-md-gold/15 bg-white px-4" style={{ gridColumn: 1, gridRow: rowIndex + 2 }}>
+                  <p className="font-bold text-gray-950">{room.name}</p>
+                  <p className="mt-1 text-xs font-medium text-gray-500">{room.units} standard {room.units === 1 ? "unit" : "units"}</p>
+                </div>
+              ))}
+
+              {roomTypes.flatMap((room, rowIndex) => dates.map((date, colIndex) => {
+                const cell = cellByRoomAndDate.get(`${room.id}-${date}`);
+
+                if (!cell) {
+                  return <div key={`${room.id}-${date}`} className="border-b border-r border-gray-100 bg-gray-50" style={{ gridColumn: colIndex + 2, gridRow: rowIndex + 2 }} />;
+                }
+
+                const isClosed = cell.status === "closed";
+                return (
+                  <div key={`${room.id}-${date}`} className={`m-1.5 flex flex-col rounded-lg border px-3 py-3 ${getHotelCellStyles(cell.status)}`} style={{ gridColumn: colIndex + 2, gridRow: rowIndex + 2 }}>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] opacity-75">{isClosed ? "Closed" : cell.status}</p>
+                    <p className="mt-1 text-2xl font-bold">{isClosed ? "—" : cell.sellableUnits}</p>
+                    <p className="text-xs font-medium opacity-80">{isClosed ? "Not bookable" : `of ${cell.inventoryLimit} rooms left`}</p>
+                    <div className="mt-auto pt-2 text-[11px] font-medium opacity-80">
+                      {cell.bookedRooms > 0 ? `${cell.bookedRooms} confirmed` : "No confirmed stays"}
+                      {cell.minNights > 1 ? ` · ${cell.minNights}-night minimum` : ""}
+                    </div>
+                  </div>
+                );
+              }))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <p className="text-center text-xs leading-5 text-gray-500">
+        Confirmed stays reduce sellable inventory automatically. To change room capacity or daily rules, edit your rooms and availability settings.
+      </p>
+    </div>
+  );
+}
+
 function LockedState({
   icon: Icon,
   title,
@@ -240,17 +448,16 @@ export default async function BusinessAvailabilityPage({
 
   const params = await searchParams;
   const weekStart = getSelectedWeek(firstValue(params.week));
-  const weekDays = getWeekDays(weekStart);
-  const slots = getSlots();
-  const { business, listing, bookings, error } = await getBookingsForOwner(user.id);
+  const business = await getBusinessByOwnerId(user.id);
+  const listing = business ? await getListingByBusinessId(Number(business.id)) : null;
   const listingType = String(listing?.type ?? "").toLowerCase();
 
   if (!listing) {
     return (
       <LockedState
         icon={Sparkles}
-        title="Create your restaurant listing first"
-        description="The availability calendar opens once your public restaurant listing exists, so table requests always have a place to land."
+        title="Create your listing first"
+        description="Availability opens once your public listing exists, so guest requests always have a place to land."
         ctaLabel="Create listing"
         ctaHref="/business/listing"
       />
@@ -258,13 +465,16 @@ export default async function BusinessAvailabilityPage({
   }
 
   if (listingType === "hotel") {
+    const hotelAvailability = await getHotelAvailabilityForOwner(user.id, weekStart);
+
     return (
-      <LockedState
-        icon={Hotel}
-        title="Manage room availability in your listing"
-        description="Hotel stays use room inventory and date ranges rather than table time slots. Update room types and stay rules from your listing."
-        ctaLabel="Edit listing"
-        ctaHref="/business/listing"
+      <HotelAvailabilityCalendar
+        listingName={listing.name}
+        weekStart={weekStart}
+        roomTypes={hotelAvailability.roomTypes as HotelRoomType[]}
+        dates={hotelAvailability.dates}
+        cells={hotelAvailability.cells as HotelAvailabilityCell[]}
+        error={hotelAvailability.error}
       />
     );
   }
@@ -280,6 +490,10 @@ export default async function BusinessAvailabilityPage({
       />
     );
   }
+
+  const weekDays = getWeekDays(weekStart);
+  const slots = getSlots();
+  const { bookings, error } = await getBookingsForOwner(user.id);
 
   const restaurantBookings = bookings.filter(
     (booking): booking is RestaurantBooking => booking.type === "restaurant",

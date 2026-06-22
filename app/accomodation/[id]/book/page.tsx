@@ -23,6 +23,7 @@ import { getPlaceById } from "@/lib/places";
 import { createClient } from "@/lib/supabase/server";
 import type { Place } from "@/types";
 import { cookies } from "next/headers";
+import { getGuestHotelAvailability } from "@/lib/guest-hotel-availability";
 
 type AccommodationBookingPageProps = {
   params: Promise<{ id: string }>;
@@ -39,7 +40,12 @@ function getPhoneHref(phone: string) {
 function addDaysIso(days: number) {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function formatTime(value: string | undefined) {
@@ -82,7 +88,10 @@ export default async function AccommodationBookingPage({
 
   const user = await getCurrentUser();
   const profile = user ? await getCurrentProfile() : null;
-  const roomOptions = await getRoomOptions(stay.id);
+  const [roomOptions, availability] = await Promise.all([
+    getRoomOptions(stay.id),
+    getGuestHotelAvailability(stay.id, new Date(), 90),
+  ]);
   const mainImage = stay.images?.[0] || "/images/hero.jpg";
   const bookingPath = `/accomodation/${stay.id}/book`;
   const checkInTime = formatTime(stay.check_in_time) ?? "15:00";
@@ -232,6 +241,8 @@ export default async function AccommodationBookingPage({
                 stayId={stay.id}
                 stayName={stay.name}
                 roomOptions={roomOptions}
+                availability={availability.cells}
+                availabilityError={availability.error}
                 defaultName={profile?.name ?? ""}
                 defaultEmail={profile?.email ?? user.email ?? ""}
                 minDate={addDaysIso(0)}

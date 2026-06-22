@@ -7,10 +7,13 @@ import {
   BedDouble,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Hotel,
   Mail,
   MessageSquareText,
+  Moon,
   Phone,
   Sparkles,
   Utensils,
@@ -18,6 +21,8 @@ import {
   XCircle,
   Search,
   Filter,
+  MapPin,
+  CreditCard,
 } from "lucide-react";
 import { updateBookingStatus } from "@/app/actions/booking-actions";
 import { Button } from "@/components/ui/button";
@@ -29,8 +34,8 @@ import type {
   OwnerBooking,
   RestaurantBooking,
 } from "@/types";
-import { StackId } from "recharts/types/util/ChartUtils";
-import { start } from "repl";
+
+const ITEMS_PER_PAGE = 6;
 
 type StatusMeta = {
   label: string;
@@ -295,34 +300,56 @@ function RestaurantBookingCard({ booking }: { booking: RestaurantBooking }) {
   const StatusIcon = statusMeta.icon;
 
   return (
-    <article className="rounded-lg border border-md-gold/20 bg-white px-5 py-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] ${statusMeta.className}`}>
-              <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              {statusMeta.label}
-            </span>
-            {booking.occasion ? (
-              <span className="rounded-full border border-md-gold/25 bg-md-sand px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark">
-                {booking.occasion}
+    <article className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-md-green/30">
+      {/* Gradient accent bar */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-md-gold via-md-gold-dark to-md-green" />
+
+      <div className="px-6 py-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex-1">
+            {/* Status + occasion badges */}
+            <div className="flex flex-wrap items-center gap-3">
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] shadow-sm ${statusMeta.className}`}>
+                <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                {statusMeta.label}
               </span>
-            ) : null}
+              {booking.occasion ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-md-gold/25 bg-gradient-to-r from-md-sand to-md-cream px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark shadow-sm">
+                  <Sparkles className="h-3 w-3" aria-hidden="true" />
+                  {booking.occasion}
+                </span>
+              ) : null}
+            </div>
+
+            {/* Date/time headline */}
+            <h2 className="mt-5 font-display text-2xl font-bold text-md-brown-dark sm:text-3xl">
+              {formatDate(booking.requested_date)}
+              <span className="mx-2 text-gray-300">·</span>
+              <span className="text-md-green">{formatTime(booking.requested_time)}</span>
+            </h2>
+
+            {/* Quick info chips */}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-md-brown-dark">
+                <UsersRound className="h-4 w-4 text-md-green" aria-hidden="true" />
+                {booking.guests} {booking.guests === 1 ? "guest" : "guests"}
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-md-brown-dark">
+                <Utensils className="h-4 w-4 text-md-gold-dark" aria-hidden="true" />
+                Table reservation
+              </span>
+            </div>
           </div>
-          <h2 className="mt-4 font-display text-3xl font-bold text-md-brown-dark">
-            {formatDate(booking.requested_date)} at {formatTime(booking.requested_time)}
-          </h2>
-          <p className="mt-2 flex items-center gap-2 text-sm font-bold text-md-brown-dark">
-            <UsersRound className="h-4 w-4 text-md-green" aria-hidden="true" />
-            {booking.guests} guests
-          </p>
+
+          <div className="shrink-0 lg:mt-0 mt-4">
+            <BookingActions booking={booking} />
+          </div>
         </div>
 
-        <BookingActions booking={booking} />
-      </div>
-
-      <div className="mt-5 grid gap-4 border-t border-md-gold/15 pt-5 md:grid-cols-3 xl:grid-cols-4">
-        <ContactDetails booking={booking} />
+        {/* Contact details section */}
+        <div className="mt-8 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-2 xl:grid-cols-4">
+          <ContactDetails booking={booking} />
+        </div>
       </div>
     </article>
   );
@@ -334,41 +361,51 @@ function AccommodationBookingCard({ booking }: { booking: AccommodationBooking }
   const nights = getStayNights(booking.check_in, booking.check_out);
 
   return (
-    <article className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-md-green/30">
-      <div className="absolute left-0 top-0 h-full w-1 bg-md-green opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <article className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 hover:border-md-green/30">
+      {/* Gradient accent bar */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-md-green via-emerald-400 to-teal-500" />
+
       <div className="px-6 py-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex-1">
+            {/* Status + room type badges */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] shadow-sm transition-colors ${statusMeta.className}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] shadow-sm transition-colors ${statusMeta.className}`}>
                 <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 {statusMeta.label}
               </span>
               {booking.room_type_name ? (
-                <span className="rounded-full border border-md-gold/25 bg-md-sand px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark shadow-sm">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-md-gold/25 bg-gradient-to-r from-md-sand to-md-cream px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-md-gold-dark shadow-sm">
+                  <BedDouble className="h-3 w-3" aria-hidden="true" />
                   {booking.room_type_name}
                 </span>
               ) : null}
             </div>
 
+            {/* Check-in / Check-out headline */}
             <div className="mt-5 flex items-center gap-3 font-display text-2xl font-bold text-md-brown-dark sm:text-3xl">
               <span>{formatDate(booking.check_in)}</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-50 to-gray-100 text-gray-400 shadow-sm">
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </span>
               <span>{formatDate(booking.check_out)}</span>
             </div>
 
-            <p className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-semibold text-md-brown-dark">
-              <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 border border-gray-100">
+            {/* Quick info chips */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm font-semibold text-md-brown-dark">
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
                 <BedDouble className="h-4 w-4 text-md-green" aria-hidden="true" />
                 {booking.rooms} {booking.rooms === 1 ? "room" : "rooms"}
               </span>
-              <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 border border-gray-100">
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
                 <UsersRound className="h-4 w-4 text-md-green" aria-hidden="true" />
-                {booking.guests} guests
+                {booking.guests} {booking.guests === 1 ? "guest" : "guests"}
               </span>
-            </p>
+              <span className="inline-flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
+                <Moon className="h-4 w-4 text-indigo-400" aria-hidden="true" />
+                {nights || "—"} {nights === 1 ? "night" : "nights"}
+              </span>
+            </div>
           </div>
 
           <div className="shrink-0 lg:mt-0 mt-4">
@@ -376,32 +413,25 @@ function AccommodationBookingCard({ booking }: { booking: AccommodationBooking }
           </div>
         </div>
 
+        {/* Detail tiles */}
         <div className="mt-8 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-2 xl:grid-cols-4">
           <ContactDetails booking={booking} />
 
-          <div className="flex flex-col rounded-lg border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-gray-50">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
-              Stay Length
-            </p>
-            <p className="mt-2 text-base font-semibold text-gray-900">
-              {nights || "Flexible"} {nights === 1 ? "night" : "nights"}
-            </p>
-          </div>
-
-          <div className="flex flex-col rounded-lg border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-gray-50">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
+          <div className="flex flex-col rounded-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-4 transition-colors hover:border-gray-200">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-gray-400">
               Expected Arrival
             </p>
-            <p className="mt-2 text-base font-semibold text-gray-900">
+            <p className="mt-auto pt-3 text-xl font-bold text-gray-900">
               {formatTime(booking.arrival_time)}
             </p>
           </div>
 
-          <div className="flex flex-col rounded-lg border border-md-green/20 bg-md-green/5 p-4 transition-colors hover:bg-md-green/10">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-md-green">
+          <div className="flex flex-col rounded-xl border border-md-green/20 bg-gradient-to-br from-md-green/5 to-emerald-50 p-4 transition-colors hover:border-md-green/30">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.16em] text-md-green">
+              <CreditCard className="h-3 w-3" aria-hidden="true" />
               Quote Total
             </p>
-            <p className="mt-2 text-base font-bold text-md-green">
+            <p className="mt-auto pt-3 text-xl font-bold text-md-green">
               {formatMoney(booking.quoted_price)}
             </p>
           </div>
@@ -424,9 +454,97 @@ const BOOKING_FILTER_OPTIONS = [
   { label: "Confirmed", value: "confirmed" },
   { label: "Declined", value: "rejected" },
   { label: "Pending", value: "pending" },
-]
+];
 
-export default async function BusinessBookingsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[] | undefined, q?: string | string[] | undefined }> }) {
+function buildPageHref(params: Record<string, string | string[] | undefined>, page: number) {
+  const parts: string[] = [];
+  if (params.status) parts.push(`status=${params.status}`);
+  if (params.q) parts.push(`q=${params.q}`);
+  parts.push(`page=${page}`);
+  return `/business/bookings?${parts.join("&")}`;
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  params,
+}: {
+  currentPage: number;
+  totalPages: number;
+  params: Record<string, string | string[] | undefined>;
+}) {
+  if (totalPages <= 1) return null;
+
+  const pages: (number | "dots")[] = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "dots") {
+      pages.push("dots");
+    }
+  }
+
+  return (
+    <nav aria-label="Booking pagination" className="flex items-center justify-center gap-2 pt-2">
+      {/* Prev */}
+      {currentPage > 1 ? (
+        <Link
+          href={buildPageHref(params, currentPage - 1)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:border-md-green/40 hover:bg-md-green/5 hover:text-md-green"
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Link>
+      ) : (
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed">
+          <ChevronLeft className="h-4 w-4" />
+        </span>
+      )}
+
+      {/* Page numbers */}
+      {pages.map((p, i) =>
+        p === "dots" ? (
+          <span key={`dots-${i}`} className="inline-flex h-10 w-6 items-center justify-center text-sm text-gray-400">
+            ···
+          </span>
+        ) : p === currentPage ? (
+          <span
+            key={p}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-md-green text-sm font-bold text-white shadow-sm"
+            aria-current="page"
+          >
+            {p}
+          </span>
+        ) : (
+          <Link
+            key={p}
+            href={buildPageHref(params, p)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-md-green/40 hover:bg-md-green/5 hover:text-md-green"
+          >
+            {p}
+          </Link>
+        )
+      )}
+
+      {/* Next */}
+      {currentPage < totalPages ? (
+        <Link
+          href={buildPageHref(params, currentPage + 1)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:border-md-green/40 hover:bg-md-green/5 hover:text-md-green"
+          aria-label="Next page"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      ) : (
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed">
+          <ChevronRight className="h-4 w-4" />
+        </span>
+      )}
+    </nav>
+  );
+}
+
+export default async function BusinessBookingsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[] | undefined, q?: string | string[] | undefined, page?: string | string[] | undefined }> }) {
   const user = await requireUser();
   const profile = await getCurrentProfile();
   const params = searchParams ? await searchParams : {};
@@ -447,6 +565,15 @@ export default async function BusinessBookingsPage({ searchParams }: { searchPar
 
     return matchesStatus && matchesQuery
   });
+
+  // Pagination
+  const currentPage = Math.max(1, parseInt(String(params?.page ?? "1"), 10) || 1);
+  const totalPages = Math.max(1, Math.ceil(filterBookings.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedBookings = filterBookings.slice(
+    (safePage - 1) * ITEMS_PER_PAGE,
+    safePage * ITEMS_PER_PAGE
+  );
 
   if (!listing) {
     return (
@@ -606,9 +733,32 @@ export default async function BusinessBookingsPage({ searchParams }: { searchPar
               </p>
             </section>
           ) : filterBookings.length > 0 ? (
-            filterBookings.map((booking) => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))
+            <>
+              {/* Page info */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">
+                  Showing{" "}
+                  <span className="font-semibold text-gray-900">
+                    {(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filterBookings.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-gray-900">{filterBookings.length}</span>{" "}
+                  {filterBookings.length === 1 ? "booking" : "bookings"}
+                </p>
+                {totalPages > 1 && (
+                  <p className="text-sm text-gray-400">
+                    Page {safePage} of {totalPages}
+                  </p>
+                )}
+              </div>
+
+              {paginatedBookings.map((booking) => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))}
+
+              {/* Pagination controls */}
+              <Pagination currentPage={safePage} totalPages={totalPages} params={params} />
+            </>
           ) : (
             <section className="rounded-lg border border-dashed border-md-gold/35 bg-white px-6 py-12 text-center shadow-sm">
               <CalendarDays className="mx-auto h-10 w-10 text-md-gold-dark" aria-hidden="true" />
