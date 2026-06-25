@@ -3,7 +3,7 @@
 import { MapPin, Search } from "lucide-react"
 import { useT } from "next-i18next/client"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { City, Place } from "@/types"
 import { searchPlaces, searchCity } from "@/lib/search"
 import Link from "next/link"
@@ -14,6 +14,8 @@ export function GlobalSearchBar() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<{ places: Place[], cities: City[] }>({ places: [], cities: [] })
     const [open, setOpen] = useState(false)
+    const Ref = useRef<HTMLDivElement>(null);
+
 
 
 
@@ -37,7 +39,15 @@ export function GlobalSearchBar() {
         return () => clearTimeout(timeout) // cancel if user keeps typing
     }, [query])
 
-    return <div className="relative w-full max-w-2xl">
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (!Ref.current?.contains(e.target as Node)) setOpen(false)
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [])
+    return <div ref={Ref} className="relative w-full max-w-2xl">
         <form action="/search" className="bg-md-cream rounded-full p-2 flex items-center w-full max-w-2xl shadow-2xl backdrop-blur-sm bg-opacity-95">
             <div className="flex-1 flex items-center px-5 py-2.5">
                 <MapPin className="text-md-green mr-3 w-5 h-5 shrink-0" />
