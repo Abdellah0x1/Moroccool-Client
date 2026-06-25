@@ -75,6 +75,7 @@ export type Business = {
     status: string | null,
     commission_model: string | null,
     commission_value: number | null,
+    type: string | null,
     created_at: string | null,
     updated_at: string | null,
 }

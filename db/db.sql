@@ -83,6 +83,8 @@ CREATE TABLE public.monthly_invoice (
   paid_at timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  booking_count integer NOT NULL DEFAULT 0,
+  commission_value numeric NOT NULL DEFAULT 0,
   CONSTRAINT monthly_invoice_pkey PRIMARY KEY (id),
   CONSTRAINT monthly_invoice_bussiness_id_fkey FOREIGN KEY (bussiness_id) REFERENCES public.businesses(id)
 );
@@ -132,7 +134,7 @@ CREATE TABLE public.accommodation_availability (
   date date NOT NULL,
   status text NOT NULL DEFAULT 'open'::text CHECK (status = ANY (ARRAY['open'::text, 'limited'::text, 'closed'::text])),
   available_units integer NOT NULL CHECK (available_units >= 0),
-  min_nights integer NOT NULL DEFAULT 1,
+  min_nights integer NOT NULL DEFAULT 1 CHECK (min_nights >= 1),
   owner_note text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),

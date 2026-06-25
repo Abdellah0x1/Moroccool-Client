@@ -55,7 +55,6 @@ const BUSINESS_TYPES = [
   "Hotel",
   "Riad",
   "Cafe",
-  "Experience",
 ];
 
 export default function BusinessSignupForm() {

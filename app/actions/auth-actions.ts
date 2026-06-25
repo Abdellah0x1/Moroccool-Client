@@ -125,6 +125,13 @@ export async function userSignOut() {
 
 
 
+const PER_BOOKING_COMMISSION_BY_TYPE: Record<string, number> = {
+    hotel: 25,
+    riad: 25,
+    restaurant: 10,
+    cafe: 10,
+}
+
 export async function ownerSignup(_prevState: { error?: string }, formData: FormData): Promise<{ error?: string, success?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
@@ -134,7 +141,7 @@ export async function ownerSignup(_prevState: { error?: string }, formData: Form
     const phone = String(formData.get("ownerPhone") || "").trim();
     const businessName = String(formData.get("businessName") || "").trim();
     const businessCity = String(formData.get("businessCity") || "").trim();
-    const businessType = String(formData.get("businessType") || "").trim();
+    const businessType = String(formData.get("businessType") || "").trim().toLowerCase();
     const address = String(formData.get("businessAddress") || "").trim();
     const businessPhone = String(formData.get("businessPhone") || "").trim();
     const businessEmail = String(formData.get("businessEmail") || "").trim().toLowerCase();
@@ -149,6 +156,14 @@ export async function ownerSignup(_prevState: { error?: string }, formData: Form
     if (!name || !email || !password || !phone || !businessName || !businessCity || !businessType || !address || !businessPhone || !businessEmail) {
         return {
             error: "All fields are required",
+        }
+    }
+
+    const commissionValue = PER_BOOKING_COMMISSION_BY_TYPE[businessType];
+
+    if (commissionValue === undefined) {
+        return {
+            error: "We currently support hotel, riad, restaurant, and café partners.",
         }
     }
     if (password.length < 8) {
@@ -213,9 +228,10 @@ export async function ownerSignup(_prevState: { error?: string }, formData: Form
         address,
         phone: businessPhone,
         email: businessEmail,
+        type: businessType,
         status: "pending_review",
         commission_model: "per_booking",
-        commission_value: 0
+        commission_value: commissionValue
     })
 
     if (businessError) {
