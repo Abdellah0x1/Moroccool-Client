@@ -4,6 +4,7 @@ import { ArrowRight, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useT } from "next-i18next/client";
+import { useRouter } from "next/navigation";
 
 import type { Place } from "@/types";
 
@@ -46,9 +47,10 @@ export function PlaceCard({
     placeType === "hotel" ? `/accomodation/${place.id}` : `/${placeType}s/${place.id}`;
   const detailLabel = actionLabel ?? t("card.viewDetails", { defaultValue: "View details" });
   const href = actionHref ?? detailHref;
+  const router = useRouter();
 
   return (
-    <article className="group overflow-hidden rounded-lg border border-md-gold/20 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-md-gold/35 hover:shadow-lg">
+    <article onClick={() => router.push(detailHref)} className="group overflow-hidden rounded-lg border border-md-gold/20 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-md-gold/35 hover:shadow-lg">
       <div className="relative aspect-4/3 w-full bg-md-sand">
         {imageSrc ? (
           <Image

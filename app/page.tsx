@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useT } from "next-i18next/client";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, MapPin, Mail, Compass, Hotel, UtensilsCrossed, Sparkles } from "lucide-react";
+import { Mail, Compass, Hotel, UtensilsCrossed, Sparkles } from "lucide-react";
+import { GlobalSearchBar } from "@/components/GlobalSearchBar";
 
 export default function Home() {
   const { t } = useT("home");
@@ -47,7 +48,7 @@ export default function Home() {
   return (
     <main>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden">
+      <section className="relative min-h-screen flex flex-col justify-center items-center overflow-x-clip">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -61,7 +62,7 @@ export default function Home() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 container mx-auto px-6 pt-32 text-center flex flex-col items-center">
+        <div className="relative z-10 container mx-auto px-6 pt-32 pb-24 text-center flex flex-col items-center overflow-visible">
           <p className="text-md-gold font-body tracking-[0.2em] uppercase text-sm mb-6 drop-shadow-md">
             {t("hero.eyebrow", { defaultValue: "Curated Luxury Travel" })}
           </p>
@@ -73,22 +74,7 @@ export default function Home() {
           </p>
 
           {/* Smart Search Bar Mockup */}
-          <div className="bg-md-cream rounded-full p-2 flex flex-col md:flex-row items-center w-full max-w-2xl shadow-2xl backdrop-blur-sm bg-opacity-95">
-            <div className="flex-1 flex items-center px-6 py-3 w-full md:w-auto">
-              <MapPin className="text-md-green mr-3 w-5 h-5" />
-              <input
-                type="text"
-                placeholder={tCommon("search.destinationPlaceholder", { defaultValue: "Where to go?" })}
-                className="bg-transparent border-none outline-none text-md-brown-dark w-full placeholder-md-muted font-body"
-              />
-            </div>
-            <button className="bg-md-green hover:bg-md-green-soft text-md-cream p-4 rounded-full transition-colors duration-300 w-full md:w-auto mt-2 md:mt-0 shadow-md flex items-center justify-center">
-              <Search className="w-5 h-5" />
-              <span className="md:hidden ml-2 font-semibold">
-                {tCommon("search.searchButton", { defaultValue: "Search" })}
-              </span>
-            </button>
-          </div>
+          <GlobalSearchBar />
         </div>
       </section>
 
