@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { ScrollToTop } from "./ScrollToTop";
 
 export function RouteChrome({
   navbar,
@@ -24,6 +25,7 @@ export function RouteChrome({
       {navbar}
       <div className="flex-grow">{children}</div>
       {footer}
+      <ScrollToTop />
     </>
   );
 }
