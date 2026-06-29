@@ -23,6 +23,7 @@ import { notFound } from "next/navigation";
 import { getT } from "next-i18next/server";
 
 import { ReviewForm } from "@/components/ReviewForm";
+import { ImageGallery } from "@/components/imageGallery";
 
 type RestaurantPageProps = {
   params: Promise<{ id: string }>;
@@ -273,26 +274,7 @@ export default async function RestaurantDetails({ params }: RestaurantPageProps)
           </div>
 
           {restaurant.images && restaurant.images.length > 1 && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {restaurant.images.slice(1, 3).map((image, idx) => (
-                <div
-                  key={idx}
-                  className="relative h-64 overflow-hidden rounded-lg border border-md-gold/10 shadow-sm"
-                >
-                  <Image
-                    src={image}
-                    alt={t("detail.galleryAlt", {
-                      name: restaurant.name,
-                      index: idx + 1,
-                      defaultValue: "{{name}} gallery image {{index}}",
-                    })}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                </div>
-              ))}
-            </div>
+            <ImageGallery images={restaurant.images.slice(1, 3)} name={restaurant.name} />
           )}
 
           <div className="mt-12 border-t border-md-gold/20 pt-12">

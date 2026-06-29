@@ -35,7 +35,7 @@ export async function getPlaces({
         .range(from, to)
 
     if (city) {
-        query = query.eq("city", city)
+        query = query.ilike("city", city)
     }
 
     if (type) {

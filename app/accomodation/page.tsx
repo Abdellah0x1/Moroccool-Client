@@ -4,6 +4,7 @@ import { getPlaces } from "@/lib/places";
 import { Bed, Hotel, MapPin } from "lucide-react";
 import Image from "next/image";
 import { getT } from "next-i18next/server";
+import { styleText } from "util";
 
 type SearchParams = {
   city?: string;
@@ -62,6 +63,7 @@ export default async function StaysPage({
     limit,
     name: query,
   });
+  const cites = [... new Set(stays.map(stay => stay.city).filter(Boolean) as string[])]
 
   const resultLabel =
     stays.length === 1
@@ -149,6 +151,7 @@ export default async function StaysPage({
       <section className="border-y border-md-gold/15 bg-md-sand px-6 py-8">
         <div className="mx-auto max-w-7xl">
           <RestaurantFilter
+            cities={cites}
             title={t("stays.filterTitle", { defaultValue: "Find a stay" })}
             searchLabel={t("stays.searchLabel", { defaultValue: "Stay" })}
             searchPlaceholder={t("stays.searchPlaceholder", {

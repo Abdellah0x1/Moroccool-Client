@@ -19,6 +19,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getT } from "next-i18next/server";
+import { ImageGallery } from "@/components/imageGallery";
 
 type AccommodationPageProps = {
   params: Promise<{ id: string }>;
@@ -259,38 +260,7 @@ export default async function AccommodationDetails({
             </div>
           </section>
 
-          {galleryImages.length > 0 ? (
-            <section>
-              <div className="mb-5">
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-md-gold-dark">
-                  {t("stays.detail.galleryEyebrow", { defaultValue: "Gallery" })}
-                </p>
-                <h2 className="mt-3 font-display text-3xl font-bold text-md-brown-dark">
-                  {t("stays.detail.galleryTitle", { defaultValue: "A closer look" })}
-                </h2>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {galleryImages.map((image, index) => (
-                  <div
-                    key={image}
-                    className="relative h-64 overflow-hidden rounded-lg border border-md-gold/10 bg-md-sand shadow-sm"
-                  >
-                    <Image
-                      src={image}
-                      alt={t("stays.detail.galleryAlt", {
-                        name: stay.name,
-                        index: index + 1,
-                        defaultValue: "{{name}} gallery image {{index}}",
-                      })}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 50vw"
-                      className="object-cover transition duration-700 hover:scale-[1.04]"
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          {galleryImages.length > 0 ? <ImageGallery name={stay.name} images={galleryImages} /> : null}
         </article>
 
         <aside className="sticky top-24 rounded-lg border border-md-gold/20 bg-white p-6 shadow-sm sm:p-8">

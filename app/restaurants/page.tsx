@@ -4,6 +4,7 @@ import { getPlaces } from "@/lib/places";
 import { Coffee, MapPin, Star, Utensils } from "lucide-react";
 import Image from "next/image";
 import { getT } from "next-i18next/server";
+import { getAllCities } from "@/lib/cities";
 
 type SearchParams = {
   city?: string;
@@ -62,6 +63,7 @@ export default async function RestaurantsPage({
     limit,
     name: query,
   });
+  const cities = [...new Set(restaurants.map((r) => r.city).filter(Boolean))] as string[];
 
   const resultLabel =
     restaurants.length === 1
@@ -154,6 +156,7 @@ export default async function RestaurantsPage({
             searchPlaceholder={t("list.searchPlaceholder", {
               defaultValue: "Search restaurant or cuisine",
             })}
+            cities={cities}
             submitLabel={t("list.submitLabel", { defaultValue: "Show dining" })}
           />
         </div>

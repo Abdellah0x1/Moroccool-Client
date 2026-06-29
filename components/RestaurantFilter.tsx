@@ -16,7 +16,7 @@ type RestaurantFilterProps = {
   cities?: string[];
 };
 
-const DEFAULT_CITIES = ["Marrakech", "Casablanca", "Chefchaouen", "Agadir", "Tanger", "Rabat"];
+const DEFAULT_CITIES = ["Marrakech", "Casablanca", "Chefchaouen", "Agadir", "Tanger", "Rabat", "Meknes"];
 
 export function RestaurantFilter({
   title,
