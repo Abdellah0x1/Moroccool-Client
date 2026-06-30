@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "next-i18next/client";
-import { Bed, BriefcaseBusiness, Compass, Home, LogIn, Utensils } from "lucide-react";
+import { Bed, BriefcaseBusiness, Compass, Home, LogIn, Utensils, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -24,12 +24,12 @@ function getDesktopLinkClass(isActive: boolean) {
   ].join(" ");
 }
 
-function getMobileLinkClass(isActive: boolean) {
+function getMobileMenuLinkClass(isActive: boolean) {
   return [
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-2.5 text-[11px] font-semibold transition-all duration-300",
+    "group flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-semibold transition-all duration-300",
     isActive
-      ? "bg-gradient-to-b from-md-gold to-[#f0c341] text-md-brown-dark shadow-[0_4px_10px_rgba(212,175,55,0.3)]"
-      : "text-md-sand/80 hover:text-md-gold hover:bg-white/5",
+      ? "bg-gradient-to-r from-md-gold/20 to-md-gold/5 text-md-gold shadow-[inset_0_0_0_1px_rgba(212,175,55,0.3)]"
+      : "text-md-sand/80 hover:text-white hover:bg-white/5",
   ].join(" ");
 }
 
@@ -40,6 +40,7 @@ function isBusinessOwner(profile: NavbarProfile) {
 export function Navbar({ user, profile }: { user: User | null, profile: NavbarProfile }) {
   const { t } = useT("common");
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const businessOwner = isBusinessOwner(profile);
   const accountHref = user
     ? businessOwner
@@ -51,6 +52,31 @@ export function Navbar({ user, profile }: { user: User | null, profile: NavbarPr
       ? t("nav.business", { defaultValue: "My Business" })
       : t("nav.profile", { defaultValue: "My Profile" })
     : t("nav.login", { defaultValue: "Sign In" });
+
+  const toggleMenu = useCallback(() => {
+    setMobileMenuOpen((prev) => !prev);
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
 
   const navItems = useMemo(
     () => [
@@ -102,6 +128,7 @@ export function Navbar({ user, profile }: { user: User | null, profile: NavbarPr
               </span>
             </Link>
 
+            {/* Desktop nav links */}
             <div className="hidden items-center rounded-full border border-white/40 bg-white/30 p-1.5 shadow-inner backdrop-blur-md lg:flex gap-1">
               {navItems.map(({ href, label, icon: Icon, active }) => (
                 <Link
@@ -129,7 +156,7 @@ export function Navbar({ user, profile }: { user: User | null, profile: NavbarPr
                 </Link>
               ) : null}
               <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-md-gold to-[#f0c341] px-5 text-sm font-bold text-md-brown-dark shadow-[0_4px_14px_rgba(212,175,55,0.35)] transition-all duration-300 hover:scale-105 hover:shadow-[0_6px_20px_rgba(212,175,55,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-md-gold/60 sm:px-6"
+                className="hidden lg:inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-md-gold to-[#f0c341] px-5 text-sm font-bold text-md-brown-dark shadow-[0_4px_14px_rgba(212,175,55,0.35)] transition-all duration-300 hover:scale-105 hover:shadow-[0_6px_20px_rgba(212,175,55,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-md-gold/60 sm:px-6"
                 href={accountHref}
               >
                 {!user ? (
@@ -139,27 +166,151 @@ export function Navbar({ user, profile }: { user: User | null, profile: NavbarPr
                 ) : null}
                 <span>{accountLabel}</span>
               </Link>
-            </div>
-          </nav>
 
-          <nav
-            className="pointer-events-auto mt-3 flex items-center justify-around rounded-[2rem] border border-white/10 bg-md-brown-dark/95 p-2 shadow-[0_12px_40px_rgba(0,0,0,0.4)] backdrop-blur-3xl backdrop-saturate-200 md:hidden"
-            aria-label={t("nav.mobileNavigation", { defaultValue: "Mobile navigation" })}
-          >
-            {navItems.map(({ href, label, icon: Icon, active }) => (
-              <Link
-                key={href}
-                href={href}
-                className={getMobileLinkClass(active)}
-                aria-current={active ? "page" : undefined}
+              {/* Hamburger button – visible on mobile/tablet */}
+              <button
+                type="button"
+                className="pointer-events-auto relative z-[60] grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-md-brown-dark to-[#3A1E11] text-md-gold shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-md-gold/60 lg:hidden"
+                onClick={toggleMenu}
+                aria-label={mobileMenuOpen ? t("nav.closeMenu", { defaultValue: "Close menu" }) : t("nav.openMenu", { defaultValue: "Open menu" })}
+                aria-expanded={mobileMenuOpen}
               >
-                <Icon className={`h-5 w-5 flex-none transition-transform duration-300 ${active ? 'scale-110 drop-shadow-sm' : ''}`} aria-hidden="true" />
-                <span className="max-w-full truncate">{label}</span>
-              </Link>
-            ))}
+                <div className="flex h-5 w-5 flex-col items-center justify-center gap-[5px]">
+                  <span
+                    className={`block h-[2px] w-5 rounded-full bg-current transition-all duration-300 ease-out ${
+                      mobileMenuOpen ? "translate-y-[7px] rotate-45" : ""
+                    }`}
+                  />
+                  <span
+                    className={`block h-[2px] w-5 rounded-full bg-current transition-all duration-300 ease-out ${
+                      mobileMenuOpen ? "scale-x-0 opacity-0" : ""
+                    }`}
+                  />
+                  <span
+                    className={`block h-[2px] w-5 rounded-full bg-current transition-all duration-300 ease-out ${
+                      mobileMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
           </nav>
         </div>
       </header>
+
+      {/* Mobile menu overlay */}
+      <div
+        className={`fixed inset-0 z-[55] transition-all duration-500 lg:hidden ${
+          mobileMenuOpen
+            ? "pointer-events-auto visible"
+            : "pointer-events-none invisible"
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${
+            mobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={closeMenu}
+        />
+
+        {/* Slide-in panel */}
+        <nav
+          className={`absolute right-0 top-0 flex h-full w-[85%] max-w-sm flex-col bg-gradient-to-b from-md-brown-dark via-[#2A1508] to-[#1A0D04] shadow-[-8px_0_40px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+          aria-label={t("nav.mobileNavigation", { defaultValue: "Mobile navigation" })}
+        >
+          {/* Menu header */}
+          <div className="flex items-center justify-between border-b border-white/10 px-6 pb-6 pt-20">
+            <span className="font-display text-xl font-extrabold tracking-tight text-md-gold">
+              {t("nav.menu", { defaultValue: "Menu" })}
+            </span>
+            <button
+              type="button"
+              onClick={closeMenu}
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-md-sand/80 transition-all duration-300 hover:bg-white/20 hover:text-white"
+              aria-label={t("nav.closeMenu", { defaultValue: "Close menu" })}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Nav links */}
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            <ul className="space-y-2">
+              {navItems.map(({ href, label, icon: Icon, active }, index) => (
+                <li
+                  key={href}
+                  className="transition-all duration-500"
+                  style={{
+                    transitionDelay: mobileMenuOpen ? `${100 + index * 60}ms` : "0ms",
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? "translateX(0)" : "translateX(24px)",
+                  }}
+                >
+                  <Link
+                    href={href}
+                    className={getMobileMenuLinkClass(active)}
+                    aria-current={active ? "page" : undefined}
+                    onClick={closeMenu}
+                  >
+                    <span
+                      className={`grid h-10 w-10 flex-none place-items-center rounded-xl transition-all duration-300 ${
+                        active
+                          ? "bg-md-gold/20 text-md-gold shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+                          : "bg-white/5 text-md-sand/60 group-hover:bg-white/10 group-hover:text-white"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <span>{label}</span>
+                    {active && (
+                      <span className="ml-auto h-2 w-2 rounded-full bg-md-gold shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Menu footer */}
+          <div
+            className="border-t border-white/10 px-5 py-6 space-y-4 transition-all duration-500"
+            style={{
+              transitionDelay: mobileMenuOpen ? "340ms" : "0ms",
+              opacity: mobileMenuOpen ? 1 : 0,
+              transform: mobileMenuOpen ? "translateY(0)" : "translateY(16px)",
+            }}
+          >
+            <div className="sm:hidden">
+              <LanguageSwitcher />
+            </div>
+            {!user && (
+              <Link
+                href="/business/signup"
+                className="flex h-12 items-center justify-center rounded-2xl border border-md-gold/30 text-sm font-bold text-md-gold transition-all duration-300 hover:border-md-gold hover:bg-md-gold/10"
+                onClick={closeMenu}
+              >
+                {t("nav.listBusiness", { defaultValue: "List your business" })}
+              </Link>
+            )}
+            <Link
+              href={accountHref}
+              className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-md-gold to-[#f0c341] text-sm font-bold text-md-brown-dark shadow-[0_4px_14px_rgba(212,175,55,0.35)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(212,175,55,0.5)]"
+              onClick={closeMenu}
+            >
+              {!user ? (
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+              ) : businessOwner ? (
+                <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
+              ) : null}
+              <span>{accountLabel}</span>
+            </Link>
+          </div>
+        </nav>
+      </div>
     </>
   );
 }
