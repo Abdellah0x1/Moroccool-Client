@@ -17,6 +17,7 @@ export type Place = {
     address: string,
     rating: number,
     images: string[],
+    logo?: string | null,
     phone?: string,
     website?: string,
     openingHours?: OpeningHoursMap,

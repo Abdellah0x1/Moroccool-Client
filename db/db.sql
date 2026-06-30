@@ -9,6 +9,7 @@ CREATE TABLE public.etablissement (
   address text,
   rating real,
   images ARRAY NOT NULL,
+  logo text,
   name text NOT NULL,
   website text,
   openingHours jsonb,

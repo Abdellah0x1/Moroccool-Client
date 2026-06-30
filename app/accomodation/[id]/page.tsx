@@ -20,6 +20,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getT } from "next-i18next/server";
 import { ImageGallery } from "@/components/imageGallery";
+import { PlaceLogoStrip } from "@/components/PlaceLogoStrip";
 
 type AccommodationPageProps = {
   params: Promise<{ id: string }>;
@@ -124,6 +125,15 @@ export default async function AccommodationDetails({
           </div>
         </div>
       </section>
+
+      <PlaceLogoStrip
+        logo={stay.logo}
+        name={stay.name}
+        eyebrow={t("stays.detail.logoEyebrow", {
+          defaultValue: "Stay identity",
+        })}
+        detail={`${stay.city} - ${ratingLabel}`}
+      />
 
       <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[1.45fr_0.85fr] lg:items-start lg:gap-16">
         <article className="space-y-10">

@@ -24,6 +24,7 @@ import { getT } from "next-i18next/server";
 
 import { ReviewForm } from "@/components/ReviewForm";
 import { ImageGallery } from "@/components/imageGallery";
+import { PlaceLogoStrip } from "@/components/PlaceLogoStrip";
 
 type RestaurantPageProps = {
   params: Promise<{ id: string }>;
@@ -233,6 +234,15 @@ export default async function RestaurantDetails({ params }: RestaurantPageProps)
           </div>
         </div>
       </section>
+
+      <PlaceLogoStrip
+        logo={restaurant.logo}
+        name={restaurant.name}
+        eyebrow={t("detail.logoEyebrow", {
+          defaultValue: "Restaurant identity",
+        })}
+        detail={`${restaurant.city} - ${restaurant.rating} / 5`}
+      />
 
       <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[1.5fr_1fr] lg:items-start lg:gap-16">
         <article className="space-y-8 text-md-brown-dark">
